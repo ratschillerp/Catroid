@@ -85,7 +85,7 @@ RUN mkdir -p $ANDROID_AVD_HOME
 RUN curl $ANDROID_SDK_URL --output /tmp/android_sdk.zip \
     && mkdir -p $ANDROID_SDK_ROOT \
     && unzip -d $ANDROID_SDK_ROOT /tmp/android_sdk.zip \
-    && mv cmdline-tools tools \
+    && mv $ANDROID_SDK_ROOT/cmdline-tools $ANDROID_SDK_ROOT/tools \
     && rm /tmp/android_sdk.zip
 # Android NDK
 # ----------------
