@@ -8,7 +8,7 @@ ARG ANDROID_SDK_URL="https://dl.google.com/android/repository/sdk-tools-linux-43
 # No Android NDK needed
 ARG ANDROID_NDK_URL
 # system-images;android-29;default;x86_64 system-images;android-24;default;x86_64 
-ARG SDKMANAGER_PACKAGES="build-tools;30.0.3 emulator platform-tools platforms;android-29 system-images;android-29;default;x86_64"
+ARG SDKMANAGER_PACKAGES="build-tools;30.0.3 emulator platform-tools platforms;android-30 system-images;android-30;default;x86_64"
 # Arguments, Environment
 # ----------------------
 #
