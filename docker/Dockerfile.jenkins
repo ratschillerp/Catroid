@@ -65,6 +65,8 @@ RUN apt-get install -y --no-install-recommends \
     #    ruby-dev \
     #    g++ \
     #    make
+RUN mkdir -p catroid/build/reports/jacoco/jacocoTestCatroidDebugUnitTestReport/html
+RUN mkdir -p catroid/build/reports/coverage/catroid/debug/
 # User Management
 # ---------------
 #
