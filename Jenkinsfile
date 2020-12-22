@@ -159,7 +159,7 @@ pipeline {
                         stage('Instrumented Unit Tests') {
                             steps {
                                 catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
-                                    sh '''./gradlew -PenableCoverage -PlogcatFile=instrumented_unit_logcat.txt -Pemulator=android28 \
+                                    sh '''./gradlew -PenableCoverage -PlogcatFile=instrumented_unit_logcat.txt -Pemulator=android27 \
                                             startEmulator createCatroidDebugAndroidTestCoverageReport \
                                             -Pandroid.testInstrumentationRunnerArguments.class=org.catrobat.catroid.testsuites.LocalHeadlessTestSuite'''
                                 }
@@ -175,7 +175,7 @@ pipeline {
                         stage('Testrunner Tests') {
                             steps {
                                 catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
-                                    sh '''./gradlew -PenableCoverage -PlogcatFile=testrunner_logcat.txt -Pemulator=android28 \
+                                    sh '''./gradlew -PenableCoverage -PlogcatFile=testrunner_logcat.txt -Pemulator=android27 \
                                                 startEmulator createCatroidDebugAndroidTestCoverageReport \
                                                 -Pandroid.testInstrumentationRunnerArguments.package=org.catrobat.catroid.catrobattestrunner'''
                                 }
@@ -195,7 +195,7 @@ pipeline {
 
                             steps {
                                 catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
-                                    sh '''./gradlew -PenableCoverage -PlogcatFile=quarantined_logcat.txt -Pemulator=android28 \
+                                    sh '''./gradlew -PenableCoverage -PlogcatFile=quarantined_logcat.txt -Pemulator=android27 \
                                             startEmulator createCatroidDebugAndroidTestCoverageReport \
                                             -Pandroid.testInstrumentationRunnerArguments.class=org.catrobat.catroid.testsuites.UiEspressoQuarantineTestSuite'''
                                 }
@@ -211,7 +211,7 @@ pipeline {
                         stage('RTL Tests') {
                             steps {
                                 catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
-                                    sh '''./gradlew -PenableCoverage -PlogcatFile=rtltests_logcat.txt -Pemulator=android24 \
+                                    sh '''./gradlew -PenableCoverage -PlogcatFile=rtltests_logcat.txt -Pemulator=android27 \
                                             startEmulator createCatroidDebugAndroidTestCoverageReport \
                                             -Pandroid.testInstrumentationRunnerArguments.class=org.catrobat.catroid.testsuites.UiEspressoRtlTestSuite'''
                                 }
@@ -247,7 +247,7 @@ pipeline {
                         stage('Pull Request Suite') {
                             steps {
                                 catchError(buildResult: 'FAILURE' ,stageResult: 'FAILURE') {
-                                    sh '''./gradlew copyAndroidNatives -PenableCoverage -PlogcatFile=pull_request_suite_logcat.txt -Pemulator=android28 \
+                                    sh '''./gradlew copyAndroidNatives -PenableCoverage -PlogcatFile=pull_request_suite_logcat.txt -Pemulator=android27 \
                                             startEmulator createCatroidDebugAndroidTestCoverageReport \
                                             -Pandroid.testInstrumentationRunnerArguments.class=org.catrobat.catroid.testsuites.UiEspressoPullRequestTriggerSuite'''
                                 }
