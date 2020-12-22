@@ -100,7 +100,7 @@ RUN if [ ! -z "$ANDROID_NDK_URL" ]; then \
 # Installing SDK Packages
 # -----------------------
 #
-RUN if [ ! -z "$SDKMANAGER_PACKAGES" ]; then yes | $_SDKMANAGER $SDKMANAGER_PACKAGES; fi
+RUN if [ ! -z "$SDKMANAGER_PACKAGES" ]; then yes | $_SDKMANAGER $SDKMANAGER_PACKAGES --sdk_root=$ANDROID_SDK_ROOT; fi
 # Performance related settings for the JVM
 # - Respect the cgroup settings for memory.
 #
