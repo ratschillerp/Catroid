@@ -4,7 +4,7 @@ FROM debian:buster
 # Adapt the paramters below to change the dependencies.
 #
 # Android SDK 26.1.1
-ARG ANDROID_SDK_URL="https://dl.google.com/android/repository/commandlinetools-linux-6858069_latest.zip"
+ARG ANDROID_SDK_URL="https://dl.google.com/android/repository/sdk-tools-linux-4333796.zip"
 # No Android NDK needed
 ARG ANDROID_NDK_URL
 ARG SDKMANAGER_PACKAGES="build-tools;29.0.3 emulator platform-tools platforms;android-29 system-images;android-29;google_apis;x86_64 system-images;android-24;default;x86_64 system-images;android-28;default;x86"
@@ -85,7 +85,6 @@ RUN mkdir -p $ANDROID_AVD_HOME
 RUN curl $ANDROID_SDK_URL --output /tmp/android_sdk.zip \
     && mkdir -p $ANDROID_SDK_ROOT \
     && unzip -d $ANDROID_SDK_ROOT /tmp/android_sdk.zip \
-    && mv $ANDROID_SDK_ROOT/cmdline-tools $ANDROID_SDK_ROOT/tools \
     && rm /tmp/android_sdk.zip
 # Android NDK
 # ----------------
