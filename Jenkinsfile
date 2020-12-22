@@ -223,7 +223,27 @@ pipeline {
                                 }
                             }
                         }
+                    }
 
+                    post {
+                        always {
+                            stash name: 'logParserRules', includes: 'buildScripts/log_parser_rules'
+                        }
+                    }
+                }
+
+                stage('2') {
+                    agent {
+                        dockerfile {
+                            filename d.fileName
+                            dir d.dir
+                            additionalBuildArgs d.buildArgs
+                            args d.args
+                            label useDebugLabelParameter(d.label)
+                        }
+                    }
+
+                    stages {
                         stage('Pull Request Suite') {
                             steps {
                                 catchError(buildResult: 'FAILURE' ,stageResult: 'FAILURE') {
@@ -240,43 +260,7 @@ pipeline {
                             }
                         }
                     }
-
-                    post {
-                        always {
-                            stash name: 'logParserRules', includes: 'buildScripts/log_parser_rules'
-                        }
-                    }
                 }
-
-                // stage('2') {
-                //     agent {
-                //         dockerfile {
-                //             filename d.fileName
-                //             dir d.dir
-                //             additionalBuildArgs d.buildArgs
-                //             args d.args
-                //             label useDebugLabelParameter(d.label)
-                //         }
-                //     }
-
-                //     stages {
-                //         stage('Pull Request Suite') {
-                //             steps {
-                //                 catchError(buildResult: 'FAILURE' ,stageResult: 'FAILURE') {
-                //                     sh '''./gradlew copyAndroidNatives -PenableCoverage -PlogcatFile=pull_request_suite_logcat.txt -Pemulator=android29 \
-                //                             startEmulator createCatroidDebugAndroidTestCoverageReport \
-                //                             -Pandroid.testInstrumentationRunnerArguments.class=org.catrobat.catroid.testsuites.UiEspressoPullRequestTriggerSuite'''
-                //                 }
-                //             }
-
-                //             post {
-                //                 always {
-                //                     postEmulator 'pull_request_suite'
-                //                 }
-                //             }
-                //         }
-                //     }
-                // }
             }
         }
     }
