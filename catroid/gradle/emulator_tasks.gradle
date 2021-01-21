@@ -28,8 +28,8 @@ apply plugin: 'org.catrobat.gradle.androidemulators'
 emulators {
     emulatorTemplate 'template1', {
         avd {
-            systemImage = 'system-images;android-24;default;x86_64'
-            sdcardSizeMb = 2048
+            systemImage = 'system-images;android-28;default;x86_64'
+            sdcardSizeMb = 1024
             hardwareProperties += ['hw.camera': 'yes', 'hw.ramSize': 4096, 'hw.gpu.enabled': 'yes',
                                    'hw.camera.front': 'emulated', 'hw.camera.back': 'emulated', 'hw.gps': 'yes',
                                    'hw.mainKeys': 'no', 'hw.keyboard': 'yes', 'vm.heapSize': 1024]

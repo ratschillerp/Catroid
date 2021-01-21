@@ -202,7 +202,7 @@ android {
         }
     }
 
-    dexOptions.javaMaxHeapSize "4g"
+    dexOptions.javaMaxHeapSize "3g"
 
     packagingOptions {
         exclude 'LICENSE.txt'
