@@ -14,7 +14,7 @@ class DockerParameters {
     // Also hand in the group id of kvm to allow using /dev/kvm.
     def buildArgs = '--build-arg USER_ID=$(id -u) --build-arg GROUP_ID=$(id -g) --build-arg KVM_GROUP_ID=$(getent group kvm | cut -d: -f3)'
 
-    def args = '--device /dev/kvm:/dev/kvm -m=14G'
+    def args = '--device /dev/kvm:/dev/kvm -m=12G'
     def label = 'LimitedEmulator'
 }
  
