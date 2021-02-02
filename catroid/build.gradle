@@ -192,7 +192,7 @@ android {
         unitTests.returnDefaultValues = true
         unitTests.includeAndroidResources = true
         unitTests.all {
-            jvmArgs ''
+            jvmArgs '-Xmx2g'
         }
     }
 
