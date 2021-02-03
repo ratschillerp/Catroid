@@ -141,11 +141,23 @@ pipeline {
                                 }
                             }
                         }
+                        stage('Clean gradle') {
+                            steps {
+                                catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
+                                    sh './gradlew --stop'
+                                }
+                            }
 
+                            post {
+                                always {
+                                    junitAndCoverage 'catroid/build/reports/jacoco/jacocoTestCatroidDebugUnitTestReport', 'jacocoTestCatroidDebugUnitTestReport.xml', 'unit'
+                                }
+                            }
+                        }
                         stage('Unit Tests') {
                             steps {
                                 catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
-                                    sh './gradlew --no-daemon -PenableCoverage jacocoTestCatroidDebugUnitTestReport --full-stacktrace'
+                                    sh './gradlew -i -PenableCoverage jacocoTestCatroidDebugUnitTestReport --full-stacktrace'
                                 }
                             }
 
