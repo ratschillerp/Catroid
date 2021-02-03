@@ -147,12 +147,6 @@ pipeline {
                                     sh './gradlew --stop'
                                 }
                             }
-
-                            post {
-                                always {
-                                    junitAndCoverage 'catroid/build/reports/jacoco/jacocoTestCatroidDebugUnitTestReport', 'jacocoTestCatroidDebugUnitTestReport.xml', 'unit'
-                                }
-                            }
                         }
                         stage('Unit Tests') {
                             steps {
