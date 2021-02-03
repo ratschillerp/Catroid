@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8" standalone="no"?>
 <!--
   ~ Catroid: An on-device visual programming system for Android devices
-  ~ Copyright (C) 2010-2018 The Catrobat Team
+  ~ Copyright (C) 2010-2021 The Catrobat Team
   ~ (<http://developer.catrobat.org/credits>)
   ~
   ~ This program is free software: you can redistribute it and/or modify
@@ -37,6 +37,8 @@
     <string name="ignore">Ignore</string>
     <string name="cancel">Cancel</string>
     <string name="save">Save</string>
+
+    <string name="discard">Discard</string>
 
     <string name="next">Next</string>
 
@@ -2033,7 +2035,6 @@ needs read and write access to it. You can always change permissions through you
     <string name="deletion_alert_title">Delete?</string>
     <string name="deletion_alert_text">Deleting a variable or list that is still in use can cause
         errors. You can\'t undo this!</string>
-    <string name="deletion_alert_yes">Yes, delete anyway!</string>
 
     <!-- Upload progress dialog -->
     <string name="progress_upload_dialog_message">Your project gets uploaded to the app\’s sharing site where others
@@ -2072,5 +2073,7 @@ needs read and write access to it. You can always change permissions through you
 
     <string name="sans_serif_font" translatable="false">sans_serif</string>
     <string name="serif_font" translatable="false">serif</string>
+    <string name="edit">Edit</string>
+    <string name="data_value">Value</string>
 
 </resources>

@@ -20,21 +20,20 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+package org.catrobat.catroid.uiespresso.ui.dialog;
 
-package org.catrobat.catroid.uiespresso.ui.fragment;
-
-import android.widget.EditText;
+import android.content.Context;
 
 import org.catrobat.catroid.ProjectManager;
 import org.catrobat.catroid.R;
 import org.catrobat.catroid.content.Project;
-import org.catrobat.catroid.content.Scene;
 import org.catrobat.catroid.io.asynctask.ProjectSaveTask;
-import org.catrobat.catroid.test.utils.TestUtils;
 import org.catrobat.catroid.testsuites.annotations.Cat;
 import org.catrobat.catroid.testsuites.annotations.Level;
 import org.catrobat.catroid.ui.ProjectActivity;
+import org.catrobat.catroid.ui.recyclerview.dialog.ReplaceExistingProjectDialogFragment;
 import org.catrobat.catroid.uiespresso.util.rules.BaseActivityTestRule;
+import org.catrobat.catroid.web.ProjectDownloader;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -45,81 +44,82 @@ import org.junit.runner.RunWith;
 import androidx.test.core.app.ApplicationProvider;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 
-import static junit.framework.Assert.assertEquals;
+import static org.hamcrest.Matchers.not;
+import static org.mockito.ArgumentMatchers.any;
 
-import static org.catrobat.catroid.uiespresso.ui.fragment.rvutils.RecyclerViewInteractionWrapper.onRecyclerView;
-import static org.catrobat.catroid.uiespresso.util.UiTestUtils.openActionBar;
-import static org.hamcrest.Matchers.allOf;
-import static org.hamcrest.Matchers.instanceOf;
-
-import static androidx.test.espresso.Espresso.closeSoftKeyboard;
 import static androidx.test.espresso.Espresso.onView;
-import static androidx.test.espresso.action.ViewActions.click;
 import static androidx.test.espresso.action.ViewActions.replaceText;
 import static androidx.test.espresso.assertion.ViewAssertions.matches;
-import static androidx.test.espresso.matcher.RootMatchers.isDialog;
 import static androidx.test.espresso.matcher.ViewMatchers.isDisplayed;
+import static androidx.test.espresso.matcher.ViewMatchers.isEnabled;
 import static androidx.test.espresso.matcher.ViewMatchers.withId;
 import static androidx.test.espresso.matcher.ViewMatchers.withText;
 
+@Category({Cat.AppUi.class, Level.Smoke.class})
 @RunWith(AndroidJUnit4.class)
-public class RenameSceneTest {
+public class ReplaceExistingProjectDialogTest {
 
-	private String projectName = "TestRenameScene";
 	@Rule
 	public BaseActivityTestRule<ProjectActivity> baseActivityTestRule = new
 			BaseActivityTestRule<>(ProjectActivity.class, false, false);
-	private Project project;
 
-	@Category({Cat.AppUi.class, Level.Smoke.class})
-	@Test
-	public void testRenameScene() {
-		openActionBar();
-		onView(withText(R.string.rename))
-				.perform(click());
-
-		onRecyclerView().atPosition(0)
-				.perform(click());
-
-		onView(withText(R.string.rename_scene_dialog)).inRoot(isDialog())
-				.check(matches(isDisplayed()));
-
-		String oldSceneName = "Scene 1";
-		String newSceneName = "firstScene";
-
-		onView(allOf(withText(oldSceneName), isDisplayed(), instanceOf(EditText.class)))
-				.perform(replaceText(newSceneName));
-
-		closeSoftKeyboard();
-
-		onView(allOf(withId(android.R.id.button2), withText(R.string.cancel)))
-				.check(matches(isDisplayed()));
-
-		onView(allOf(withId(android.R.id.button1), withText(R.string.ok)))
-				.perform(click());
-		onView(withText(newSceneName))
-				.check(matches(isDisplayed()));
-
-		assertEquals(newSceneName, project.getDefaultScene().getName());
-	}
-
-	@After
-	public void tearDown() throws Exception {
-		TestUtils.deleteProjects(projectName);
-	}
+	String[] projectNames = {"Project1", "Project2", "Project3"};
 
 	@Before
 	public void setUp() throws Exception {
-		createProject(projectName);
+		createProjects();
 		baseActivityTestRule.launchActivity(null);
+		ReplaceExistingProjectDialogFragment dialog =
+				ReplaceExistingProjectDialogFragment.newInstance(projectNames[0], any(ProjectDownloader.class));
+		dialog.show(baseActivityTestRule.getActivity().getSupportFragmentManager(),
+				ReplaceExistingProjectDialogFragment.TAG);
 	}
 
-	private void createProject(String projectName) {
-		project = new Project(ApplicationProvider.getApplicationContext(), projectName);
-		Scene secondScene = new Scene("secondScene", project);
-		project.addScene(secondScene);
+	@After
+	public void tearDown() {
+		baseActivityTestRule.deleteAllProjects();
+	}
+
+	@Test
+	public void testProjectNameAlreadyExists() {
+		onView(withText(R.string.name_already_exists))
+				.check(matches(isDisplayed()));
+
+		onView(withText(R.string.ok))
+				.check(matches(not(isEnabled())));
+	}
+
+	@Test
+	public void testProjectNameEmpty() {
+		onView(withId(R.id.input_edit_text))
+				.perform(replaceText(""));
+
+		onView(withText(R.string.name_empty))
+				.check(matches(isDisplayed()));
+
+		onView(withText(R.string.ok))
+				.check(matches(not(isEnabled())));
+	}
+
+	@Test
+	public void testNewProjectName() {
+		onView(withId(R.id.input_edit_text))
+				.perform(replaceText("newProject"));
+
+		onView(withText(R.string.ok))
+				.check(matches(isEnabled()));
+	}
+
+	void createProjects() {
+		Context context = ApplicationProvider.getApplicationContext();
+
+		Project project = null;
+
+		for (String name : projectNames) {
+			project = new Project(context, name);
+			ProjectSaveTask.task(project, context);
+		}
+
 		ProjectManager.getInstance().setCurrentProject(project);
-		ProjectSaveTask
-				.task(project, ApplicationProvider.getApplicationContext());
 	}
 }
