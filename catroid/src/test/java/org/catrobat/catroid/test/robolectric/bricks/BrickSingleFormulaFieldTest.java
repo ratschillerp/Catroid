@@ -197,24 +197,6 @@ public class BrickSingleFormulaFieldTest {
 				{IfLogicBeginBrick.class.getSimpleName(), new IfLogicBeginBrick(), R.id.brick_if_begin_edit_text},
 				{IfThenLogicBeginBrick.class.getSimpleName(), new IfThenLogicBeginBrick(), R.id.brick_if_begin_edit_text},
 
-				//Bricks with multiple formula fields:
-				{GlideToBrick.class.getSimpleName() + " duration", new GlideToBrick(), R.id.brick_glide_to_edit_text_duration},
-				{SetVelocityBrick.class.getSimpleName() + " x", new SetVelocityBrick(), R.id.brick_set_velocity_edit_text_x},
-				{SetVelocityBrick.class.getSimpleName() + " y", new SetVelocityBrick(), R.id.brick_set_velocity_edit_text_y},
-				{SetGravityBrick.class.getSimpleName() + " x", new SetGravityBrick(), R.id.brick_set_gravity_edit_text_x},
-				{SetGravityBrick.class.getSimpleName() + " y", new SetGravityBrick(), R.id.brick_set_gravity_edit_text_y},
-				{SayForBubbleBrick.class.getSimpleName() + " text", new SayForBubbleBrick(), R.id.brick_for_bubble_edit_text_text},
-				{SayForBubbleBrick.class.getSimpleName() + " duration", new SayForBubbleBrick(), R.id.brick_for_bubble_edit_text_duration},
-				{ThinkForBubbleBrick.class.getSimpleName() + " text", new ThinkForBubbleBrick(), R.id.brick_for_bubble_edit_text_text},
-				{ThinkForBubbleBrick.class.getSimpleName() + " duration", new ThinkForBubbleBrick(), R.id.brick_for_bubble_edit_text_duration},
-				{ShowTextColorSizeAlignmentBrick.class.getSimpleName() + " color", new ShowTextColorSizeAlignmentBrick(), R.id.brick_show_variable_color_size_edit_color},
-				{ShowTextColorSizeAlignmentBrick.class.getSimpleName() + " size", new ShowTextColorSizeAlignmentBrick(), R.id.brick_show_variable_color_size_edit_relative_size},
-				{InsertItemIntoUserListBrick.class.getSimpleName() + " value", new InsertItemIntoUserListBrick(), R.id.brick_insert_item_into_userlist_value_edit_text},
-				{InsertItemIntoUserListBrick.class.getSimpleName() + " index", new InsertItemIntoUserListBrick(), R.id.brick_insert_item_into_userlist_at_index_edit_text},
-				{ReplaceItemInUserListBrick.class.getSimpleName() + " value", new ReplaceItemInUserListBrick(), R.id.brick_replace_item_in_userlist_value_edit_text},
-				{ReplaceItemInUserListBrick.class.getSimpleName() + " index", new ReplaceItemInUserListBrick(), R.id.brick_replace_item_in_userlist_at_index_edit_text},
-				{ReplaceItemInUserListBrick.class.getSimpleName() + " index", new ReplaceItemInUserListBrick(), R.id.brick_replace_item_in_userlist_at_index_edit_text},
-
 				//NFC bricks:
 				{SetNfcTagBrick.class.getSimpleName(), new SetNfcTagBrick(), R.id.brick_set_nfc_tag_edit_text},
 
