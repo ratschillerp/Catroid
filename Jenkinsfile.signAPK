@@ -69,7 +69,8 @@ pipeline {
 
             steps {
                 script {
-                    uploadFileToWeb standaloneApk, "${env.UPLOAD}"
+                     sh '''echo would upload now'''
+					//uploadFileToWeb standaloneApk, "${env.UPLOAD}"
                 }
             }
         }
