@@ -41,7 +41,14 @@ pipeline {
             }
         }
         stage('Build signed APK') {
-            steps {
+            // needed, as long as we mark the build unstable when we receive the 528 error from WEB
+            when {
+                expression {
+                    currentBuild.result == null
+                }
+            }
+			
+			steps {
                 // Build, zipalign and sign releasable APK
                 withCredentials([file(credentialsId: 'a925b6e8-b3c6-407e-8cad-65886e330037', variable: 'SIGNING_KEYSTORE')]) {
                     script {                      
