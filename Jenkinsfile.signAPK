@@ -1,0 +1,84 @@
+#!groovy
+
+def standaloneApk = 'catroid/build/outputs/apk/standalone/debug/catroid-standalone-debug.apk'
+
+pipeline {
+    agent {
+        docker {
+            image 'catrobat/catrobat-android:stable'
+            args '--device /dev/kvm:/dev/kvm -v /var/local/container_shared/gradle_cache/$EXECUTOR_NUMBER:/home/user/.gradle -m=6.5G'
+            label 'LimitedEmulator'
+            alwaysPull true
+        }
+    }
+
+    options {
+        timeout(time: 2, unit: 'HOURS')
+        timestamps()
+    }
+
+    stages {
+        stage('Prepare build') {
+            steps {
+                script {
+                    currentBuild.displayName = "${env.DOWNLOAD}"
+                }
+            }
+        }
+
+		stage('Check-for-invalid-program-upload') {
+            steps {
+                script {
+                    def ret = sh script: "./buildScripts/checkUrlExists.sh '$env.DOWNLOAD'", returnStatus: true
+                    if (ret == 200) {
+                        // Handle special error from the script, if the program download was not
+                        // possible because of the HTTP error 528, we set the build to UNSTABLE
+                        currentBuild.result = 'UNSTABLE'
+                    } else if (ret != 0) {
+                        currentBuild.result = 'FAILURE'
+                    }
+                }
+            }
+        }
+        stage('Build signed APK') {
+            steps {
+                // Build, zipalign and sign releasable APK
+                withCredentials([file(credentialsId: 'a925b6e8-b3c6-407e-8cad-65886e330037', variable: 'SIGNING_KEYSTORE')]) {
+                    script {                      
+						sh '''
+							set +x
+							./gradlew copyAndroidNatives assembleSignedRelease \
+							-PsigningKeystore=${SIGNING_KEYSTORE} \
+							-PsigningKeystorePassword=$signingKeystorePassword \
+							-PsigningKeyAlias=$signingKeyAlias \
+							-PsigningKeyPassword=$signingKeyPassword \
+						'''
+                    }
+                }
+                archiveArtifacts artifacts: 'catroid/build/outputs/apk/**/*signedRelease.apk', fingerprint: true
+            }
+        }
+
+        stage('Upload to Web') {
+            // needed, as long as we mark the build unstable when we receive the 528 error from WEB
+            when {
+                expression {
+                    currentBuild.result == null
+                }
+            }
+
+            steps {
+                script {
+                    uploadFileToWeb standaloneApk, "${env.UPLOAD}"
+                }
+            }
+        }
+    }
+
+    post {
+        always {
+            // clean workspace
+            deleteDir()
+        }
+    }
+}
