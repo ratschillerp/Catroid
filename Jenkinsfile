@@ -146,7 +146,7 @@ pipeline {
                         stage('Unit Tests') {
                             steps {
                                 catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
-                                    sh './gradlew -PenableCoverage jacocoTestCatroidDebugUnitTestReport'
+                                    sh './gradlew -PenableCoverage jacocoTestCatroidDebugUnitTestReport --full-stacktrace'
                                 }
                             }
 
