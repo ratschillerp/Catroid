@@ -147,11 +147,6 @@ pipeline {
                             steps {
                                 catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
                                     sh './gradlew -PenableCoverage jacocoTestCatroidDebugUnitTestReport --full-stacktrace'
-                                }
-                            }
-
-                            post {
-                                always {
                                     junitAndCoverage 'catroid/build/reports/jacoco/jacocoTestCatroidDebugUnitTestReport', 'jacocoTestCatroidDebugUnitTestReport.xml', 'unit'
                                 }
                             }
