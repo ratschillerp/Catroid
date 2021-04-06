@@ -145,8 +145,10 @@ pipeline {
 
                         stage('Unit Tests') {
                             steps {
-                                catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
+                                catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {                                   
                                     sh './gradlew -PenableCoverage jacocoTestCatroidDebugUnitTestReport --full-stacktrace'
+                                    sh 'mkdir -p catroid/build/reports/jacoco/jacocoTestCatroidDebugUnitTestReport/'
+                                    sh 'touch catroid/build/reports/jacoco/jacocoTestCatroidDebugUnitTestReport/jacocoTestCatroidDebugUnitTestReport.xml'
                                     junitAndCoverage 'catroid/build/reports/jacoco/jacocoTestCatroidDebugUnitTestReport', 'jacocoTestCatroidDebugUnitTestReport.xml', 'unit'
                                 }
                             }
