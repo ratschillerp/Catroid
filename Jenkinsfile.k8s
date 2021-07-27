@@ -18,7 +18,7 @@
 //     def label = 'LimitedEmulator'
 // }
  
-def d = new DockerParameters()
+// def d = new DockerParameters()
 
 def junitAndCoverage(String jacocoReportDir, String jacocoReportXml, String coverageName) {
     // Consume all test xml files. Otherwise tests would be tracked multiple
