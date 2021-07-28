@@ -63,11 +63,30 @@ def useDockerLabelParameter(dockerImage, defaultLabel) {
 }
 
 pipeline {
+    environment {
+
+    }
+
     agent {
-        docker {
-            image 'catrobat/catrobat-android:stable'
-            args '--device /dev/kvm:/dev/kvm -v /var/local/container_shared/gradle_cache/$EXECUTOR_NUMBER:/home/user/.gradle -m=6.5G'
-            alwaysPull false
+        kubernetes {
+            // image 'catrobat/catrobat-android:stable'
+            // args '--device /dev/kvm:/dev/kvm -v /var/local/container_shared/gradle_cache/$EXECUTOR_NUMBER:/home/user/.gradle -m=6.5G'
+            // alwaysPull false
+            label 'catroid-app'
+            defaultContainer 'jnlp'
+            yaml """
+            apiVersion: v1
+            kind: Pod
+            metadata:
+            labels:
+                component: ci
+            spec:
+                serviceAccountName: jenkins
+                containers:
+                    - name: catroid
+                      image: catrobat/catrobat-android:stable
+                      tty: true
+            """
         }
     }
 
@@ -81,20 +100,20 @@ pipeline {
         string name: 'DOCKER_LABEL', defaultValue: '', description: 'When entered will be used as label for docker catrobat/catroid-android image to build'
     }
 
-    options {
-        timeout(time: 2, unit: 'HOURS')
-        timestamps()
-        buildDiscarder(logRotator(numToKeepStr: env.BRANCH_NAME == 'master' ? '10' :
-                                                env.BRANCH_NAME == 'develop' ? '5' : '2',
-                                  artifactNumToKeepStr: env.BRANCH_NAME == 'master' ? '2' :
-                                                        env.BRANCH_NAME == 'develop' ? '2' : '1'
-        ))
-    }
+    // options {
+    //     timeout(time: 2, unit: 'HOURS')
+    //     timestamps()
+    //     buildDiscarder(logRotator(numToKeepStr: env.BRANCH_NAME == 'master' ? '10' :
+    //                                             env.BRANCH_NAME == 'develop' ? '5' : '2',
+    //                               artifactNumToKeepStr: env.BRANCH_NAME == 'master' ? '2' :
+    //                                                     env.BRANCH_NAME == 'develop' ? '2' : '1'
+    //     ))
+    // }
 
-    triggers {
-        cron(env.BRANCH_NAME == 'develop' ? '@midnight' : '')
-        issueCommentTrigger('.*test this please.*')
-    }
+    // triggers {
+    //     cron(env.BRANCH_NAME == 'develop' ? '@midnight' : '')
+    //     issueCommentTrigger('.*test this please.*')
+    // }
 
     stages {
         stage('1') {
