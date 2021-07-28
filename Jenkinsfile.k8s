@@ -63,9 +63,9 @@ def useDockerLabelParameter(dockerImage, defaultLabel) {
 }
 
 pipeline {
-    environment {
+    // environment {
 
-    }
+    // }
 
     agent {
         kubernetes {
