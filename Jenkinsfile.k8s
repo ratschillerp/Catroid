@@ -337,7 +337,7 @@ pipeline {
                     stages {
                         stage('Pull Request Suite') {
                             steps {
-                                catchError(buildResult: 'FAILURE' ,stageResult: 'FAILURE') {
+                                catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
                                     container('catroid-ui-tests') {
                                         sh '''./gradlew copyAndroidNatives -PenableCoverage -PlogcatFile=pull_request_suite_logcat.txt -Pemulator=android28 \
                                                 startEmulator createCatroidDebugAndroidTestCoverageReport \
@@ -353,7 +353,7 @@ pipeline {
                             // }
                              post {
                                 always {
-                                    container('catroid') {
+                                    container('catroid-ui-tests') {
                                         sh './gradlew stopEmulator'
                                     }
                                 }
