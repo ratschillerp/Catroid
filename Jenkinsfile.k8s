@@ -63,6 +63,8 @@ def useDockerLabelParameter(dockerImage, defaultLabel) {
 }
 
 pipeline {
+    agent none
+    
     parameters {
         string name: 'WEB_TEST_URL', defaultValue: '', description: 'When set, all the archived ' +
                 'APKs will point to this Catrobat web server, useful for testing web changes. E.g https://web-test.catrob.at'
