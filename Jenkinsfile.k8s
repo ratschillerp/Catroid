@@ -64,7 +64,7 @@ def useDockerLabelParameter(dockerImage, defaultLabel) {
 
 pipeline {
     agent none
-    
+
     parameters {
         string name: 'WEB_TEST_URL', defaultValue: '', description: 'When set, all the archived ' +
                 'APKs will point to this Catrobat web server, useful for testing web changes. E.g https://web-test.catrob.at'
@@ -110,21 +110,21 @@ pipeline {
                             spec:
                                 serviceAccountName: jenkins
                                 containers:
-                                    - image: catrobat/catrobat-android:stable
+                                  - image: catrobat/catrobat-android:stable
                                     name: catroid
                                     env:
-                                        - name: "ANDROID_SDK_ROOT"
+                                      - name: "ANDROID_SDK_ROOT"
                                         value: "/home/user/android/sdk"
-                                        - name: "ANDROID_AVD_HOME"
+                                      - name: "ANDROID_AVD_HOME"
                                         value: "/home/user/avds"
                                     tty: true
                                     volumeMounts:
-                                        - mountPath: /dev/kvm
+                                      - mountPath: /dev/kvm
                                         name: dev-kvm
                                     securityContext:
                                         privileged: true
                                 volumes:
-                                - name: dev-kvm
+                                  - name: dev-kvm
                                     hostPath:
                                     path: /dev/kvm
                                 nodeSelector:
@@ -312,21 +312,21 @@ pipeline {
                             spec:
                                 serviceAccountName: jenkins
                                 containers:
-                                    - image: catrobat/catrobat-android:stable
+                                  - image: catrobat/catrobat-android:stable
                                     name: catroid-ui-tests
                                     env:
-                                        - name: "ANDROID_SDK_ROOT"
+                                      - name: "ANDROID_SDK_ROOT"
                                         value: "/home/user/android/sdk"
-                                        - name: "ANDROID_AVD_HOME"
+                                      - name: "ANDROID_AVD_HOME"
                                         value: "/home/user/avds"
                                     tty: true
                                     volumeMounts:
-                                        - mountPath: /dev/kvm
-                                        name: dev-kvm
+                                     - mountPath: /dev/kvm
+                                       name: dev-kvm
                                     securityContext:
                                         privileged: true
                                 volumes:
-                                - name: dev-kvm
+                                  - name: dev-kvm
                                     hostPath:
                                     path: /dev/kvm
                                 nodeSelector:
