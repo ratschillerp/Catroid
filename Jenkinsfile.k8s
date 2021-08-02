@@ -330,7 +330,7 @@ pipeline {
                                     hostPath:
                                     path: /dev/kvm
                                 nodeSelector:
-                                    device: none
+                                    device: kvm
                             """
                         }
                     }
