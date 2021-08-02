@@ -109,22 +109,22 @@ pipeline {
                         serviceAccountName: jenkins
                         containers:
                             - image: catrobat/catrobat-android:stable
-                            name: catroid
-                            env:
+                              name: catroid
+                              env:
                                 - name: "ANDROID_SDK_ROOT"
-                                value: "/home/user/android/sdk"
+                                  value: "/home/user/android/sdk"
                                 - name: "ANDROID_AVD_HOME"
-                                value: "/home/user/avds"
-                            tty: true
-                            volumeMounts:
+                                  value: "/home/user/avds"
+                              tty: true
+                              volumeMounts:
                                 - mountPath: /dev/kvm
-                                name: dev-kvm
-                            securityContext:
+                                  name: dev-kvm
+                              securityContext:
                                 privileged: true
                         volumes:
                             - name: dev-kvm
-                            hostPath:
-                            path: /dev/kvm
+                              hostPath:
+                              path: /dev/kvm
                         nodeSelector:
                             device: kvm
                     """
