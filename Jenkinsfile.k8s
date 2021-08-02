@@ -92,6 +92,19 @@ pipeline {
                           name: dev-kvm
                       securityContext:
                         privileged: true
+                    - image: catrobat/catrobat-android:stable
+                      name: catroid-ui-tests
+                      env:
+                        - name: "ANDROID_SDK_ROOT"
+                          value: "/home/user/android/sdk"
+                        - name: "ANDROID_AVD_HOME"
+                          value: "/home/user/avds"
+                      tty: true
+                      volumeMounts:
+                        - mountPath: /dev/kvm
+                          name: dev-kvm
+                      securityContext:
+                        privileged: true
                 volumes:
                   - name: dev-kvm
                     hostPath:
@@ -126,113 +139,171 @@ pipeline {
     // }
 
     stages {
-        stage('1') {
-            // agent {
-            //     // TODO needs to go, alternative?
-            //     dockerfile {
-            //         filename d.fileName
-            //         dir d.dir
-            //         additionalBuildArgs d.buildArgs
-            //         args d.args
-            //         label useDebugLabelParameter(d.label)
-            //     }
-            // }
-
-            stages {
-                stage('APKs') {
-                    steps {
-                        catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
-                            script {
-                                def additionalParameters = [webTestUrlParameter(), allFlavoursParameters()].findAll {
-                                    it
-                                }.collect()
-                                if (additionalParameters) {
-                                    currentBuild.description = "<p>Additional APK build parameters: <b>${additionalParameters.join(' ')}</b></p>"
-                                }
-                                if(env.INCLUDE_HUAWEI_FILES?.toBoolean()) {
-                                    sh "cp /home/user/huawei/agconnect-services.json catroid/src/agconnect-services.json"
-                                }
-                            }
-
-                            // Checks that the creation of standalone APKs (APK for a Pocketcode app) works, reducing the risk of breaking gradle changes.
-                            // The resulting APK is not verified itself.
-                            container('catroid') {
-                                sh "git clone https://github.com/ratschillerp/Catroid.git"
-                                dir ('Catroid') {
-                                    // Build the flavors so that they can be installed next independently of older versions.
-                                    sh "./gradlew ${webTestUrlParameter()} -Pindependent='#$env.BUILD_NUMBER $env.BRANCH_NAME' assembleCatroidDebug ${allFlavoursParameters()}"
-                                    archiveArtifacts '**/*.apk'
-                                }
-                            }
-                        }
-                    }
-                }
-
-                stage('Static Analysis') {
-                    steps {
-                        catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
-                            container('catroid') {
-                                dir ('Catroid') {
-                                    sh './gradlew pmd checkstyle lintCatroidDebug detekt'
-                                }
-                            }
-                        }
-                    }
-                }
-
-                stage('Unit Tests') {
-                    steps {
-                        catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
-                            container('catroid') {
-                                dir ('Catroid') {
-                                    sh """./gradlew ${debugUnitTests()} -PenableCoverage jacocoTestCatroidDebugUnitTestReport --full-stacktrace"""
-                                    sh 'mkdir -p catroid/build/reports/jacoco/jacocoTestCatroidDebugUnitTestReport/'
-                                    sh 'touch catroid/build/reports/jacoco/jacocoTestCatroidDebugUnitTestReport/jacocoTestCatroidDebugUnitTestReport.xml'
-                                    junitAndCoverage 'catroid/build/reports/jacoco/jacocoTestCatroidDebugUnitTestReport', 'jacocoTestCatroidDebugUnitTestReport.xml', 'unit'
-                                }
-                            }
-                        }
-                    }
-                }
-
-                stage('Instrumented Unit Tests') {
-                    steps {
-                        catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
-                            container('catroid') {
-                                dir ('Catroid') {
-                                    sh '''./gradlew -PenableCoverage -PlogcatFile=instrumented_unit_logcat.txt -Pemulator=android28 \
-                                            startEmulator createCatroidDebugAndroidTestCoverageReport \
-                                            -Pandroid.testInstrumentationRunnerArguments.class=org.catrobat.catroid.testsuites.LocalHeadlessTestSuite'''
-                                }
-                            }
-                        }
-                    }
-
-                    // post {
-                    //     always {
-                    //         postEmulator 'instrumented_unit'
+        stage('All') {
+            parallel {
+                stage('1') {
+                    // agent {
+                    //     // TODO needs to go, alternative?
+                    //     dockerfile {
+                    //         filename d.fileName
+                    //         dir d.dir
+                    //         additionalBuildArgs d.buildArgs
+                    //         args d.args
+                    //         label useDebugLabelParameter(d.label)
                     //     }
                     // }
-                    post {
-                        always {
-                            container('catroid') {
-                                dir('Catroid') {
-                                    sh './gradlew stopEmulator'
+
+                    stages {
+                        stage('APKs') {
+                            steps {
+                                catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
+                                    script {
+                                        def additionalParameters = [webTestUrlParameter(), allFlavoursParameters()].findAll {
+                                            it
+                                        }.collect()
+                                        if (additionalParameters) {
+                                            currentBuild.description = "<p>Additional APK build parameters: <b>${additionalParameters.join(' ')}</b></p>"
+                                        }
+                                        if(env.INCLUDE_HUAWEI_FILES?.toBoolean()) {
+                                            sh "cp /home/user/huawei/agconnect-services.json catroid/src/agconnect-services.json"
+                                        }
+                                    }
+
+                                    // Checks that the creation of standalone APKs (APK for a Pocketcode app) works, reducing the risk of breaking gradle changes.
+                                    // The resulting APK is not verified itself.
+                                    container('catroid') {
+                                        // Build the flavors so that they can be installed next independently of older versions.
+                                        sh "./gradlew ${webTestUrlParameter()} -Pindependent='#$env.BUILD_NUMBER $env.BRANCH_NAME' assembleCatroidDebug ${allFlavoursParameters()}"
+                                        archiveArtifacts '**/*.apk'
+                                    }
                                 }
                             }
                         }
-                    }
-                    
-                }
 
-                stage('Testrunner Tests') {
-                    steps {
-                        catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
-                            container('catroid') {
-                                dir ('Catroid') {
-                                    sh '''./gradlew -PenableCoverage -PlogcatFile=testrunner_logcat.txt -Pemulator=android28 \
+                        stage('Static Analysis') {
+                            steps {
+                                catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
+                                    container('catroid') {
+                                        sh './gradlew pmd checkstyle lintCatroidDebug detekt'
+                                    }
+                                }
+                            }
+                        }
+
+                        stage('Unit Tests') {
+                            steps {
+                                catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
+                                    container('catroid') {
+                                        sh """./gradlew ${debugUnitTests()} -PenableCoverage jacocoTestCatroidDebugUnitTestReport --full-stacktrace"""
+                                        sh 'mkdir -p catroid/build/reports/jacoco/jacocoTestCatroidDebugUnitTestReport/'
+                                        sh 'touch catroid/build/reports/jacoco/jacocoTestCatroidDebugUnitTestReport/jacocoTestCatroidDebugUnitTestReport.xml'
+                                        junitAndCoverage 'catroid/build/reports/jacoco/jacocoTestCatroidDebugUnitTestReport', 'jacocoTestCatroidDebugUnitTestReport.xml', 'unit'
+                                    }
+                                }
+                            }
+                        }
+
+                        stage('Instrumented Unit Tests') {
+                            steps {
+                                catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
+                                    container('catroid') {
+                                        sh '''./gradlew -PenableCoverage -PlogcatFile=instrumented_unit_logcat.txt -Pemulator=android28 \
                                                 startEmulator createCatroidDebugAndroidTestCoverageReport \
-                                                -Pandroid.testInstrumentationRunnerArguments.package=org.catrobat.catroid.catrobattestrunner'''
+                                                -Pandroid.testInstrumentationRunnerArguments.class=org.catrobat.catroid.testsuites.LocalHeadlessTestSuite'''
+                                    }
+                                }
+                            }
+
+                            // post {
+                            //     always {
+                            //         postEmulator 'instrumented_unit'
+                            //     }
+                            // }
+                            post {
+                                always {
+                                    container('catroid') {
+                                        sh './gradlew stopEmulator'
+                                    }
+                                }
+                            }
+                            
+                        }
+
+                        stage('Testrunner Tests') {
+                            steps {
+                                catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
+                                    container('catroid') {
+                                        sh '''./gradlew -PenableCoverage -PlogcatFile=testrunner_logcat.txt -Pemulator=android28 \
+                                                    startEmulator createCatroidDebugAndroidTestCoverageReport \
+                                                    -Pandroid.testInstrumentationRunnerArguments.package=org.catrobat.catroid.catrobattestrunner'''
+                                    }
+                                }
+                            }
+
+                            // post {
+                            //     always {
+                            //         postEmulator 'testrunner'
+                            //     }
+                            // }
+                            post {
+                                always {
+                                    container('catroid') {
+                                        sh './gradlew stopEmulator'
+                                    }
+                                }
+                            }
+                        }
+
+                        stage('Quarantined Tests') {
+                        //    when {
+                        //        expression { isJobStartedByTimer() }
+                        //    }
+
+                            steps {
+                                catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
+                                    container('catroid') {
+                                        sh '''./gradlew -PenableCoverage -PlogcatFile=quarantined_logcat.txt -Pemulator=android28 \
+                                                startEmulator createCatroidDebugAndroidTestCoverageReport \
+                                                -Pandroid.testInstrumentationRunnerArguments.class=org.catrobat.catroid.testsuites.UiEspressoQuarantineTestSuite'''
+                                    }
+                                }
+                            }
+
+                            // post {
+                            //     always {
+                            //         postEmulator 'quarantined'
+                            //     }
+                            // }
+                            post {
+                                always {
+                                    container('catroid') {
+                                        sh './gradlew stopEmulator'
+                                    }
+                                }
+                            }
+                        }
+
+                        stage('RTL Tests') {
+                            steps {
+                                catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
+                                    container('catroid') {
+                                        sh '''./gradlew -PenableCoverage -PlogcatFile=rtltests_logcat.txt -Pemulator=android28 \
+                                                startEmulator createCatroidDebugAndroidTestCoverageReport \
+                                                -Pandroid.testInstrumentationRunnerArguments.class=org.catrobat.catroid.testsuites.UiEspressoRtlTestSuite'''
+                                    }
+                                }
+                            }
+
+                            // post {
+                            //     always {
+                            //         postEmulator 'rtltests'
+                            //     }
+                            // }
+                            post {
+                                always {
+                                    container('catroid') {
+                                        sh './gradlew stopEmulator'
+                                    }
                                 }
                             }
                         }
@@ -240,121 +311,42 @@ pipeline {
 
                     // post {
                     //     always {
-                    //         postEmulator 'testrunner'
+                    //         stash name: 'logParserRules', includes: 'buildScripts/log_parser_rules'
                     //     }
                     // }
-                    post {
-                        always {
-                            container('catroid') {
-                                dir('Catroid') {
-                                    sh './gradlew stopEmulator'
-                                }
-                            }
-                        }
-                    }
                 }
 
-                stage('Quarantined Tests') {
-                //    when {
-                //        expression { isJobStartedByTimer() }
-                //    }
+                stage('2') {
 
-                    steps {
-                        catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
-                            container('catroid') {
-                                dir ('Catroid') {
-                                    sh '''./gradlew -PenableCoverage -PlogcatFile=quarantined_logcat.txt -Pemulator=android28 \
-                                            startEmulator createCatroidDebugAndroidTestCoverageReport \
-                                            -Pandroid.testInstrumentationRunnerArguments.class=org.catrobat.catroid.testsuites.UiEspressoQuarantineTestSuite'''
+                    stages {
+                        stage('Pull Request Suite') {
+                            steps {
+                                catchError(buildResult: 'FAILURE' ,stageResult: 'FAILURE') {
+                                    container('catroid-ui-tests') {
+                                        sh '''./gradlew copyAndroidNatives -PenableCoverage -PlogcatFile=pull_request_suite_logcat.txt -Pemulator=android28 \
+                                                startEmulator createCatroidDebugAndroidTestCoverageReport \
+                                                -Pandroid.testInstrumentationRunnerArguments.class=org.catrobat.catroid.testsuites.UiEspressoPullRequestTriggerSuite'''
+                                    }
                                 }
                             }
-                        }
-                    }
 
-                    // post {
-                    //     always {
-                    //         postEmulator 'quarantined'
-                    //     }
-                    // }
-                    post {
-                        always {
-                            container('catroid') {
-                                dir('Catroid') {
-                                    sh './gradlew stopEmulator'
-                                }
-                            }
-                        }
-                    }
-                }
-
-                stage('RTL Tests') {
-                    steps {
-                        catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
-                            container('catroid') {
-                                dir ('Catroid') {
-                                    sh '''./gradlew -PenableCoverage -PlogcatFile=rtltests_logcat.txt -Pemulator=android28 \
-                                            startEmulator createCatroidDebugAndroidTestCoverageReport \
-                                            -Pandroid.testInstrumentationRunnerArguments.class=org.catrobat.catroid.testsuites.UiEspressoRtlTestSuite'''
-                                }
-                            }
-                        }
-                    }
-
-                    // post {
-                    //     always {
-                    //         postEmulator 'rtltests'
-                    //     }
-                    // }
-                    post {
-                        always {
-                            container('catroid') {
-                                dir('Catroid') {
-                                    sh './gradlew stopEmulator'
+                            // post {
+                            //     always {
+                            //         postEmulator 'pull_request_suite'
+                            //     }
+                            // }
+                             post {
+                                always {
+                                    container('catroid') {
+                                        sh './gradlew stopEmulator'
+                                    }
                                 }
                             }
                         }
                     }
                 }
             }
-
-            // post {
-            //     always {
-            //         stash name: 'logParserRules', includes: 'buildScripts/log_parser_rules'
-            //     }
-            // }
         }
-
-            // stage('2') {
-            //     agent {
-            //         dockerfile {
-            //             filename d.fileName
-            //             dir d.dir
-            //             additionalBuildArgs d.buildArgs
-            //             args d.args
-            //             label useDebugLabelParameter(d.label)
-            //         }
-            //     }
-
-            //     stages {
-            //         stage('Pull Request Suite') {
-            //             steps {
-            //                 catchError(buildResult: 'FAILURE' ,stageResult: 'FAILURE') {
-            //                     sh '''./gradlew copyAndroidNatives -PenableCoverage -PlogcatFile=pull_request_suite_logcat.txt -Pemulator=android28 \
-            //                             startEmulator createCatroidDebugAndroidTestCoverageReport \
-            //                             -Pandroid.testInstrumentationRunnerArguments.class=org.catrobat.catroid.testsuites.UiEspressoPullRequestTriggerSuite'''
-            //                 }
-            //             }
-
-            //             post {
-            //                 always {
-            //                     postEmulator 'pull_request_suite'
-            //                 }
-            //             }
-            //         }
-            //     }
-            // }
-        // }
-    
     }
 
 //    post {
