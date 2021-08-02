@@ -321,7 +321,6 @@ pipeline {
                                 nodeSelector:
                                     device: kvm
                             """
->>>>>>> parent of 57f61f2df (Revert "test different nodes")
                         }
                     }
 
