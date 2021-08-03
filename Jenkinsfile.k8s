@@ -325,7 +325,7 @@ pipeline {
                                     hostPath:
                                       path: /dev/kvm
                                 nodeSelector:
-                                    device: kvm
+                                    device: kvm-ui
                             """
                         }
                     }
