@@ -189,15 +189,10 @@ pipeline {
                                 }
                             }
 
-                            // post {
-                            //     always {
-                            //         postEmulator 'instrumented_unit'
-                            //     }
-                            // }
                             post {
                                 always {
                                     container('catroid') {
-                                        sh './gradlew stopEmulator'
+                                        postEmulator 'instrumented_unit'
                                     }
                                 }
                             }
@@ -215,24 +210,21 @@ pipeline {
                                 }
                             }
 
-                            // post {
-                            //     always {
-                            //         postEmulator 'testrunner'
-                            //     }
-                            // }
                             post {
                                 always {
                                     container('catroid') {
-                                        sh './gradlew stopEmulator'
+                                        postEmulator 'testrunner'
                                     }
                                 }
                             }
                         }
 
                         stage('Quarantined Tests') {
-                        //    when {
-                        //        expression { isJobStartedByTimer() }
-                        //    }
+                           when {
+                                container('catroid') {
+                                    expression { isJobStartedByTimer() }
+                                }
+                           }
 
                             steps {
                                 catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
@@ -244,15 +236,10 @@ pipeline {
                                 }
                             }
 
-                            // post {
-                            //     always {
-                            //         postEmulator 'quarantined'
-                            //     }
-                            // }
                             post {
                                 always {
                                     container('catroid') {
-                                        sh './gradlew stopEmulator'
+                                        postEmulator 'quarantined'
                                     }
                                 }
                             }
@@ -269,34 +256,28 @@ pipeline {
                                 }
                             }
 
-                            // post {
-                            //     always {
-                            //         postEmulator 'rtltests'
-                            //     }
-                            // }
                             post {
                                 always {
                                     container('catroid') {
-                                        sh './gradlew stopEmulator'
+                                        postEmulator 'rtltests'
                                     }
                                 }
                             }
                         }
                     }
 
-                    // post {
-                    //     always {
-                    //         stash name: 'logParserRules', includes: 'buildScripts/log_parser_rules'
-                    //     }
-                    // }
+                    post {
+                        always {
+                            container('catroid') {
+                                stash name: 'logParserRules', includes: 'buildScripts/log_parser_rules'
+                            }
+                        }
+                    }
                 }
 
                 stage('2') {
                     agent {
                         kubernetes {
-                            // image 'catrobat/catrobat-android:stable'
-                            // args '--device /dev/kvm:/dev/kvm -v /var/local/container_shared/gradle_cache/$EXECUTOR_NUMBER:/home/user/.gradle -m=6.5G'
-                            // alwaysPull false
                             label 'catroid-ui'
                             yaml """
                             apiVersion: v1
@@ -341,15 +322,10 @@ pipeline {
                                 }
                             }
 
-                            // post {
-                            //     always {
-                            //         postEmulator 'pull_request_suite'
-                            //     }
-                            // }
                              post {
                                 always {
                                     container('catroid-ui-tests') {
-                                        sh './gradlew stopEmulator'
+                                        postEmulator 'pull_request_suite'
                                     }
                                 }
                             }
