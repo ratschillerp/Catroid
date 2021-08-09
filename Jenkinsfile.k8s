@@ -220,12 +220,11 @@ pipeline {
                         }
 
                         stage('Quarantined Tests') {
-                           when {
-                                container('catroid') {
+                            container('catroid') {
+                                when {
                                     expression { isJobStartedByTimer() }
                                 }
-                           }
-
+                            }
                             steps {
                                 catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
                                     container('catroid') {
