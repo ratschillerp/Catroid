@@ -42,7 +42,7 @@ import static org.catrobat.catroid.common.FlavoredConstants.DEFAULT_ROOT_DIRECTO
 
 public final class Constants {
 
-	public static final double CURRENT_CATROBAT_LANGUAGE_VERSION = 1.05;
+	public static final double CURRENT_CATROBAT_LANGUAGE_VERSION = 1.09;
 	public static final String REMOTE_DISPLAY_APP_ID = "CEBB9229";
 	public static final int CAST_CONNECTION_TIMEOUT = 5000; //in milliseconds
 	public static final int CAST_NOT_SEEING_DEVICE_TIMEOUT = 3000; //in milliseconds
@@ -64,6 +64,7 @@ public final class Constants {
 			Environment.getExternalStorageDirectory(), POCKET_CODE_EXTERNAL_EXPORT_STORAGE_FOLDER_NAME);
 
 	public static final String CATROBAT_EXTENSION = ".catrobat";
+	public static final String ZIP_EXTENSION = ".zip";
 	public static final String DEFAULT_IMAGE_EXTENSION = ".png";
 	public static final String JPEG_IMAGE_EXTENSION = ".jpg";
 	public static final String DEFAULT_SOUND_EXTENSION = ".wav";

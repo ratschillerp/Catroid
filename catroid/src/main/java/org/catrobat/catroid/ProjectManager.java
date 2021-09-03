@@ -196,6 +196,10 @@ public final class ProjectManager {
 			SettingsFragment.setAIFaceDetectionPreferenceEnabled(context, true);
 		}
 
+		if (resourcesSet.contains(Brick.POSE_DETECTION)) {
+			SettingsFragment.setAIPoseDetectionPreferenceEnabled(context, true);
+		}
+
 		if (resourcesSet.contains(Brick.TEXT_TO_SPEECH)) {
 			SettingsFragment.setAISpeechSynthetizationPreferenceEnabled(context, true);
 		}
@@ -687,5 +691,11 @@ public final class ProjectManager {
 			downloadedProjects.put(destination, true);
 			saveDownloadedProjects();
 		}
+	}
+
+	public void resetProjectManager() {
+		currentlyEditedScene = null;
+		currentlyPlayingScene = null;
+		currentSprite = null;
 	}
 }

@@ -77,6 +77,7 @@ import org.catrobat.catroid.content.bricks.DroneTurnLeftBrick;
 import org.catrobat.catroid.content.bricks.DroneTurnRightBrick;
 import org.catrobat.catroid.content.bricks.EditLookBrick;
 import org.catrobat.catroid.content.bricks.ExitStageBrick;
+import org.catrobat.catroid.content.bricks.FadeParticleEffectBrick;
 import org.catrobat.catroid.content.bricks.FinishStageBrick;
 import org.catrobat.catroid.content.bricks.FlashBrick;
 import org.catrobat.catroid.content.bricks.ForItemInUserListBrick;
@@ -118,6 +119,7 @@ import org.catrobat.catroid.content.bricks.NoteBrick;
 import org.catrobat.catroid.content.bricks.OpenUrlBrick;
 import org.catrobat.catroid.content.bricks.PaintNewLookBrick;
 import org.catrobat.catroid.content.bricks.ParameterizedBrick;
+import org.catrobat.catroid.content.bricks.ParticleEffectAdditivityBrick;
 import org.catrobat.catroid.content.bricks.PauseForBeatsBrick;
 import org.catrobat.catroid.content.bricks.PenDownBrick;
 import org.catrobat.catroid.content.bricks.PenUpBrick;
@@ -156,6 +158,7 @@ import org.catrobat.catroid.content.bricks.SetBackgroundByIndexAndWaitBrick;
 import org.catrobat.catroid.content.bricks.SetBackgroundByIndexBrick;
 import org.catrobat.catroid.content.bricks.SetBounceBrick;
 import org.catrobat.catroid.content.bricks.SetBrightnessBrick;
+import org.catrobat.catroid.content.bricks.SetCameraFocusPointBrick;
 import org.catrobat.catroid.content.bricks.SetColorBrick;
 import org.catrobat.catroid.content.bricks.SetFrictionBrick;
 import org.catrobat.catroid.content.bricks.SetGravityBrick;
@@ -267,6 +270,7 @@ public class BrickCategoryTest {
 						GlideToBrick.class,
 						GoNStepsBackBrick.class,
 						ComeToFrontBrick.class,
+						SetCameraFocusPointBrick.class,
 						VibrationBrick.class,
 						SetPhysicsObjectTypeBrick.class,
 						WhenBounceOffBrick.class,
@@ -276,7 +280,8 @@ public class BrickCategoryTest {
 						SetGravityBrick.class,
 						SetMassBrick.class,
 						SetBounceBrick.class,
-						SetFrictionBrick.class)},
+						SetFrictionBrick.class,
+						FadeParticleEffectBrick.class)},
 				{"Embroidery", Arrays.asList(StitchBrick.class,
 						SetThreadColorBrick.class,
 						RunningStitchBrick.class,
@@ -318,7 +323,10 @@ public class BrickCategoryTest {
 						ChangeBrightnessByNBrick.class,
 						SetColorBrick.class,
 						ChangeColorByNBrick.class,
+						FadeParticleEffectBrick.class,
+						ParticleEffectAdditivityBrick.class,
 						ClearGraphicEffectBrick.class,
+						SetCameraFocusPointBrick.class,
 						WhenBackgroundChangesBrick.class,
 						SetBackgroundBrick.class,
 						SetBackgroundByIndexBrick.class,
