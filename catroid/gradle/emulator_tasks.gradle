@@ -48,4 +48,10 @@ emulators {
             systemImage = 'system-images;android-28;default;x86_64'
         }
     }
+    
+    emulator 'android31', 'template1', {
+        avd {
+            systemImage = 'system-images;android-31;default;x86_64'
+        }
+    }
 }
