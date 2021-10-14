@@ -4,10 +4,10 @@ FROM debian:buster
 # Adapt the paramters below to change the dependencies.
 #
 # Android SDK 26.1.1
-ARG ANDROID_SDK_URL="https://dl.google.com/android/repository/sdk-tools-linux-4333796.zip"
+ARG ANDROID_SDK_URL="https://dl.google.com/android/repository/commandlinetools-linux-7583922_latest.zip"
 # No Android NDK needed
 ARG ANDROID_NDK_URL
-ARG SDKMANAGER_PACKAGES="build-tools;30.0.3 emulator platform-tools platforms;android-28 platforms;android-31 system-images;android-28;default;x86_64 system-images;android-31;default;x86_64"
+ARG SDKMANAGER_PACKAGES="build-tools;30.0.3 emulator platform-tools platforms;android-28 platforms;android-30 system-images;android-28;default;x86_64 system-images;android-30;default;x86_64"
 # Arguments, Environment
 # ----------------------
 #
@@ -34,15 +34,15 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 #        openjdk-8-jdk \
         unzip \
         openssh-client \
-         x11-common \
-         x11-utils \
-         libpulse0 \
-         libxcursor-dev \
-         libnss3-dev \
-         libasound2 \
-         wget \
-         gnupg \
-         software-properties-common \
+        x11-common \
+        x11-utils \
+        libpulse0 \
+        libxcursor-dev \
+        libnss3-dev \
+        libasound2 \
+        wget \
+        gnupg \
+        software-properties-common \
     && rm -rf /var/lib/apt/lists/*
 # Install Fastlane
 RUN wget --no-check-certificate -qO - https://adoptopenjdk.jfrog.io/adoptopenjdk/api/gpg/key/public | apt-key add -
@@ -83,9 +83,12 @@ RUN mkdir -p $ANDROID_AVD_HOME
 # ------------------
 #
 RUN curl $ANDROID_SDK_URL --output /tmp/android_sdk.zip \
-    && mkdir -p $ANDROID_SDK_ROOT \
-    && unzip -d $ANDROID_SDK_ROOT /tmp/android_sdk.zip \
-    && rm /tmp/android_sdk.zip
+    && mkdir -p $ANDROID_SDK_ROOT/cmdline-tools/latest \
+    && mkdir /tmp/sdk_unzip \
+    && unzip -d /tmp/sdk_unzip /tmp/android_sdk.zip \
+    && mv /tmp/sdk_unzip/cmdline-tools/* $ANDROID_SDK_ROOT/cmdline-tools/latest \
+    && rm /tmp/android_sdk.zip \
+    && rm -rf /tmp/sdk_unzip
 # Android NDK
 # ----------------
 #
