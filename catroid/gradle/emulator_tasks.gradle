@@ -49,9 +49,9 @@ emulators {
         }
     }
     
-    emulator 'android31', 'template1', {
+    emulator 'android30', 'template1', {
         avd {
-            systemImage = 'system-images;android-31;default;x86_64'
+            systemImage = 'system-images;android-30;default;x86_64'
         }
     }
 }
