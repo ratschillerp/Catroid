@@ -23,7 +23,7 @@ ENV ANDROID_SDK_ROOT=$USER_HOME/android/sdk
 ENV ANDROID_AVD_HOME=$USER_HOME/avds
 # Deprecated: Still used by gradle, once gradle respects ANDROID_SDK_ROOT, this can be removed
 ENV ANDROID_HOME=$ANDROID_SDK_ROOT
-ARG _SDKMANAGER=$ANDROID_SDK_ROOT/tools/bin/sdkmanager
+ARG _SDKMANAGER=$ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager
 # System Packages
 # ---------------
 #
