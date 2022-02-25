@@ -14,10 +14,10 @@ ARG SDKMANAGER_PACKAGES="build-tools;30.0.3 emulator platform-tools platforms;an
 # Default values for the arguments to be passed from the Jenkinsfile.
 # Those contain the uid and gid of the Jenkins user, and are used to
 # create this user inside of the container, needed for eg ssh-agent to work
-ARG USER_ID=1000
+# ARG USER_ID=1000
 ARG USER_HOME=/home/user
-ARG GROUP_ID=1000
-ARG KVM_GROUP_ID=999
+#ARG GROUP_ID=1000
+#ARG KVM_GROUP_ID=999
 # Environment variables that are needed by the build job.
 ENV ANDROID_SDK_ROOT=$USER_HOME/android/sdk
 ENV ANDROID_AVD_HOME=$USER_HOME/avds
@@ -77,6 +77,11 @@ RUN mkdir -p catroid/build/reports/coverage/catroid/debug/
 # Add the user used by Jenkins during building.
 RUN useradd -m -u $USER_ID -g $GROUP_ID -G $KVM_GROUP_ID -d $USER_HOME -s /usr/sbin/nologin user
 # Run all other commands as user
+RUN echo "USER==============================================="
+RUN echo $USER_ID
+RUN echo $GROUP_ID
+RUn echo $KVM_GROUP_ID
+RUN echo "USER==============================================="
 USER user
 RUN mkdir -p $ANDROID_AVD_HOME
 # Android SDK
