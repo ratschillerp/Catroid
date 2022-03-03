@@ -216,6 +216,10 @@ pipeline {
                                         
                                         $ANDROID_SDK_ROOT/emulator/emulator -avd coolbeans -no-window -no-audio &
 
+                                        $ANDROID_SDK_ROOT/platform-tools/adb shell settings put global window_animation_scale 0 &
+                                        $ANDROID_SDK_ROOT/platform-tools/adb shell settings put global transition_animation_scale 0 &
+                                        $ANDROID_SDK_ROOT/platform-tools/adb shell settings put global animator_duration_scale 0 &
+
                                         $ANDROID_SDK_ROOT/platform-tools/adb devices
                                     '''
                                     sh '''./gradlew -PenableCoverage -PlogcatFile=instrumented_unit_logcat.txt -Pemulator=coolbeans \
