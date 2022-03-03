@@ -223,8 +223,8 @@ pipeline {
                                         $ANDROID_SDK_ROOT/platform-tools/adb shell settings put global animator_duration_scale 0 &
 
                                         $ANDROID_SDK_ROOT/platform-tools/adb devices
-                                    '''
-                                    sh '''./gradlew -PenableCoverage -PlogcatFile=instrumented_unit_logcat.txt -Pemulator=coolbeans \
+                                        
+                                        ./gradlew -PenableCoverage -PlogcatFile=instrumented_unit_logcat.txt -Pemulator=coolbeans \
                                             createCatroidDebugAndroidTestCoverageReport \
                                             -Pandroid.testInstrumentationRunnerArguments.class=org.catrobat.catroid.testsuites.LocalHeadlessTestSuite'''
                                 }
