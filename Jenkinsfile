@@ -218,15 +218,11 @@ pipeline {
 
                                         $ANDROID_SDK_ROOT/platform-tools/adb wait-for-device
 
-                                        $ANDROID_SDK_ROOT/platform-tools/adb shell settings put global window_animation_scale 0 &
-                                        $ANDROID_SDK_ROOT/platform-tools/adb shell settings put global transition_animation_scale 0 &
-                                        $ANDROID_SDK_ROOT/platform-tools/adb shell settings put global animator_duration_scale 0 &
-
                                         $ANDROID_SDK_ROOT/platform-tools/adb devices
                                         
-                                        ./gradlew -PenableCoverage -PlogcatFile=instrumented_unit_logcat.txt -Pci \
+                                        ./gradlew \
                                             createCatroidDebugAndroidTestCoverageReport \
-                                            -Pandroid.testInstrumentationRunnerArguments.class=org.catrobat.catroid.testsuites.LocalHeadlessTestSuite'''
+                                            -Dandroid.testInstrumentationRunnerArguments.class=org.catrobat.catroid.testsuites.LocalHeadlessTestSuite'''
                                 }
                             }
 
