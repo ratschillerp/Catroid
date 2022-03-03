@@ -224,7 +224,7 @@ pipeline {
 
                                         $ANDROID_SDK_ROOT/platform-tools/adb devices
                                         
-                                        ./gradlew -PenableCoverage -PlogcatFile=instrumented_unit_logcat.txt -Pemulator=coolbeans \
+                                        ./gradlew -PenableCoverage -PlogcatFile=instrumented_unit_logcat.txt -Pci \
                                             createCatroidDebugAndroidTestCoverageReport \
                                             -Pandroid.testInstrumentationRunnerArguments.class=org.catrobat.catroid.testsuites.LocalHeadlessTestSuite'''
                                 }
