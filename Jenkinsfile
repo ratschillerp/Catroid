@@ -173,23 +173,23 @@ pipeline {
                             }
                         }
 
-                        stage('Static Analysis') {
-                            steps {
-                                catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
-                                    sh './gradlew pmd checkstyle lintCatroidDebug detekt'
-                                }
-                            }
+                        // stage('Static Analysis') {
+                        //     steps {
+                        //         catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
+                        //             sh './gradlew pmd checkstyle lintCatroidDebug detekt'
+                        //         }
+                        //     }
 
-                            post {
-                                always {
-                                    recordIssues aggregatingResults: true, enabledForFailure: true, qualityGates: [[threshold: 1, type: 'TOTAL', unstable: true]],
-                                            tools: [androidLintParser(pattern: 'catroid/build/reports/lint*.xml'),
-                                                    checkStyle(pattern: 'catroid/build/reports/checkstyle.xml'),
-                                                    pmdParser(pattern: 'catroid/build/reports/pmd.xml'),
-                                                    detekt(pattern: 'catroid/build/reports/detekt/detekt.xml')]
-                                }
-                            }
-                        }
+                        //     post {
+                        //         always {
+                        //             recordIssues aggregatingResults: true, enabledForFailure: true, qualityGates: [[threshold: 1, type: 'TOTAL', unstable: true]],
+                        //                     tools: [androidLintParser(pattern: 'catroid/build/reports/lint*.xml'),
+                        //                             checkStyle(pattern: 'catroid/build/reports/checkstyle.xml'),
+                        //                             pmdParser(pattern: 'catroid/build/reports/pmd.xml'),
+                        //                             detekt(pattern: 'catroid/build/reports/detekt/detekt.xml')]
+                        //         }
+                        //     }
+                        // }
 
                         stage('Unit Tests') {
                             when {
@@ -211,8 +211,15 @@ pipeline {
                             }
                             steps {
                                 catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
-                                    sh '''./gradlew -PenableCoverage -PlogcatFile=instrumented_unit_logcat.txt -Pemulator=android28 \
-                                            startEmulator createCatroidDebugAndroidTestCoverageReport \
+                                    sh '''
+                                        echo "no" | $ANDROID_SDK_ROOT/tools/bin/avdmanager create avd -f -n coolbeans -k "system-images;android-28;default;x86_64"
+                                        
+                                        $ANDROID_SDK_ROOT/emulator/emulator -avd coolbeans -no-window -no-audio &
+
+                                        $ANDROID_SDK_ROOT/platform-tools/adb devices
+                                    '''
+                                    sh '''./gradlew -PenableCoverage -PlogcatFile=instrumented_unit_logcat.txt -Pemulator=coolbeans \
+                                            createCatroidDebugAndroidTestCoverageReport \
                                             -Pandroid.testInstrumentationRunnerArguments.class=org.catrobat.catroid.testsuites.LocalHeadlessTestSuite'''
                                 }
                             }
