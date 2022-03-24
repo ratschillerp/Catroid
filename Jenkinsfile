@@ -149,7 +149,6 @@ pipeline {
                                     // Build the flavors so that they can be installed next independently of older versions.
                                     sh "./gradlew ${webTestUrlParameter()} -Pindependent='#$env.BUILD_NUMBER $env.BRANCH_NAME' assembleCatroidDebug ${allFlavoursParameters()}"
 
-                                    renameApks("${env.BRANCH_NAME}-${env.BUILD_NUMBER}")
                                     archiveArtifacts '**/*.apk'
                                 }
                             }
