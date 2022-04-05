@@ -96,36 +96,8 @@ pipeline {
                 stage('1') {
                     agent {
                         kubernetes {
-                            label 'catroid-app'
-                            yaml """
-                            apiVersion: v1
-                            kind: Pod
-                            metadata:
-                            labels:
-                                component: ci
-                            spec:
-                                serviceAccountName: jenkins
-                                containers:
-                                  - image: catrobat/catrobat-android:stable
-                                    name: catroid
-                                    env:
-                                      - name: "ANDROID_SDK_ROOT"
-                                        value: "/home/user/android/sdk"
-                                      - name: "ANDROID_AVD_HOME"
-                                        value: "/home/user/avds"
-                                    tty: true
-                                    volumeMounts:
-                                      - mountPath: /dev/kvm
-                                        name: dev-kvm
-                                    securityContext:
-                                        privileged: true
-                                volumes:
-                                  - name: dev-kvm
-                                    hostPath:
-                                      path: /dev/kvm
-                                nodeSelector:
-                                    device: kvm
-                            """
+                            inheritFrom 'catroid-app'
+                            yamlFile 'kubernetes/jenkins_pod.yaml'
                         }
                     }
                     stages {
@@ -275,36 +247,8 @@ pipeline {
                 stage('2') {
                     agent {
                         kubernetes {
-                            label 'catroid-ui'
-                            yaml """
-                            apiVersion: v1
-                            kind: Pod
-                            metadata:
-                            labels:
-                                component: ci
-                            spec:
-                                serviceAccountName: jenkins
-                                containers:
-                                  - image: catrobat/catrobat-android:stable
-                                    name: catroid-ui-tests
-                                    env:
-                                      - name: "ANDROID_SDK_ROOT"
-                                        value: "/home/user/android/sdk"
-                                      - name: "ANDROID_AVD_HOME"
-                                        value: "/home/user/avds"
-                                    tty: true
-                                    volumeMounts:
-                                     - mountPath: /dev/kvm
-                                       name: dev-kvm
-                                    securityContext:
-                                        privileged: true
-                                volumes:
-                                  - name: dev-kvm
-                                    hostPath:
-                                      path: /dev/kvm
-                                nodeSelector:
-                                    device: kvm-ui
-                            """
+                            inheritFrom 'catroid-ui'
+                            yamlFile 'kubernetes/jenkins_pod.yaml'
                         }
                     }
                     stages {
