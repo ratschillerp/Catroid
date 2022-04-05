@@ -11,8 +11,7 @@ spec:
         name: catroid
         resources:
           limits:
-            cpu: 4
-            memory: 6Gi
+            memory: 8Gi
         env:
           - name: "ANDROID_SDK_ROOT"
             value: "/home/user/android/sdk"
