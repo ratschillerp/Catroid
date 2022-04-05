@@ -10,8 +10,11 @@ spec:
       - image: catrobat/catrobat-android:stable
         name: catroid
         resources:
-          limits:
+          requests:
             - memory: "6Gi"
+              cpu: 2
+          limits:
+            - memory: "8Gi"
               cpu: 4
         env:
           - name: "ANDROID_SDK_ROOT"
