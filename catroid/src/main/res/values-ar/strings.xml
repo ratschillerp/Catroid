@@ -372,6 +372,7 @@
     <string name="hide_details">إخفاء التفاصيل</string>
     <string name="project_options">خيارات المشروع</string>
     <string name="from_library">إضافة من المكتبة</string>
+    <string name="from_local">Add from local</string>
     <string name="sort_projects">فرز</string>
     <string name="unsort_projects">ترتيب</string>
     <string name="import_from_project">حدد المشروع المراد استيراده من</string>
@@ -1449,7 +1450,7 @@
     <string name="error_internet_connection">حدث خطأ غير معروف. تحقق من اتصال الإنترنت الخاص بك.</string>
     <string name="error_project_compatibility">المشروع غير متكامل مع هذا الإصدار من البرنامج.</string>
     <string name="error_outdated_version">إصدار \"البوكت كوود\" قديم جداً. قم بالتحديث الآن؟</string>
-    <string name="error_upload_project_with_default_name">لا يمكنك رفع مشروع مُسمى \"مشروعي الأول\".
+    <string name="error_upload_project_with_default_name">لا يمكنك رفع مشروع مُسمى \"%s\".
         من فضلك قم بإعادة تسمية المشروع.</string>
     <string name="error_upload_default_project">لا يمكنك رفع المشروع الإفتراضي. فضلاً
         قم بتغيير شيئاً ما ثم حاول مجدداً.</string>

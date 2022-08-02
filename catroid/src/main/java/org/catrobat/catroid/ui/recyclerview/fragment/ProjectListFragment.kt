@@ -1,6 +1,6 @@
 /*
  * Catroid: An on-device visual programming system for Android devices
- * Copyright (C) 2010-2021 The Catrobat Team
+ * Copyright (C) 2010-2022 The Catrobat Team
  * (<http://developer.catrobat.org/credits>)
  *
  * This program is free software: you can redistribute it and/or modify
@@ -36,7 +36,6 @@ import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
-import android.widget.PopupMenu
 import androidx.annotation.PluralsRes
 import androidx.annotation.RequiresApi
 import org.catrobat.catroid.ProjectManager
@@ -60,6 +59,7 @@ import org.catrobat.catroid.io.asynctask.ProjectUnZipperAndImporter
 import org.catrobat.catroid.ui.BottomBar
 import org.catrobat.catroid.ui.ProjectActivity
 import org.catrobat.catroid.ui.ProjectListActivity
+import org.catrobat.catroid.ui.UiUtils
 import org.catrobat.catroid.ui.filepicker.FilePickerActivity
 import org.catrobat.catroid.ui.fragment.ProjectOptionsFragment
 import org.catrobat.catroid.ui.recyclerview.adapter.ProjectAdapter
@@ -341,7 +341,7 @@ class ProjectListFragment : RecyclerViewFragment<ProjectData?>(), ProjectLoadLis
     private fun copyFileContentToCacheFile(uri: Uri, fileName: String) {
         val projectFile = StorageOperations.copyUriToDir(
             requireActivity().contentResolver, uri,
-            Constants.CACHE_DIR, fileName
+            Constants.CACHE_DIRECTORY, fileName
         )
         filesForUnzipAndImportTask?.add(projectFile)
         hasUnzipAndImportTaskFinished = false
@@ -486,10 +486,20 @@ class ProjectListFragment : RecyclerViewFragment<ProjectData?>(), ProjectLoadLis
     }
 
     override fun onSettingsClick(item: ProjectData?, view: View?) {
-        val popupMenu = PopupMenu(requireContext(), view)
         val itemList: MutableList<ProjectData?> = ArrayList()
         itemList.add(item)
-        popupMenu.menuInflater.inflate(R.menu.menu_project_activity, popupMenu.menu)
+        val hiddenMenuOptionIds = intArrayOf(
+            R.id.backpack,
+            R.id.new_group,
+            R.id.new_scene,
+            R.id.show_details,
+            R.id.from_library,
+            R.id.edit,
+            R.id.from_local
+        )
+        val popupMenu = UiUtils.createSettingsPopUpMenu(view, requireContext(), R.menu
+                .menu_project_activity, hiddenMenuOptionIds)
+
         popupMenu.setOnMenuItemClickListener { menuItem ->
             when (menuItem.itemId) {
                 R.id.copy -> copyItems(itemList)
@@ -499,10 +509,6 @@ class ProjectListFragment : RecyclerViewFragment<ProjectData?>(), ProjectLoadLis
             }
             true
         }
-        popupMenu.menu.findItem(R.id.backpack).isVisible = false
-        popupMenu.menu.findItem(R.id.new_group).isVisible = false
-        popupMenu.menu.findItem(R.id.new_scene).isVisible = false
-        popupMenu.menu.findItem(R.id.show_details).isVisible = false
         popupMenu.show()
     }
 

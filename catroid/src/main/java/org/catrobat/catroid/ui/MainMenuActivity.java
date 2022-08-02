@@ -1,6 +1,6 @@
 /*
  * Catroid: An on-device visual programming system for Android devices
- * Copyright (C) 2010-2021 The Catrobat Team
+ * Copyright (C) 2010-2022 The Catrobat Team
  * (<http://developer.catrobat.org/credits>)
  *
  * This program is free software: you can redistribute it and/or modify
@@ -257,7 +257,7 @@ public class MainMenuActivity extends BaseCastActivity implements
 				scratchConverter.length(), scratchConverterBeta.length(),
 				Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
 		menu.findItem(R.id.menu_scratch_converter).setTitle(scratchConverterBeta);
-		return true;
+		return super.onCreateOptionsMenu(menu);
 	}
 
 	@Override
