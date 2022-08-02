@@ -1,6 +1,6 @@
 /*
  * Catroid: An on-device visual programming system for Android devices
- * Copyright (C) 2010-2021 The Catrobat Team
+ * Copyright (C) 2010-2022 The Catrobat Team
  * (<http://developer.catrobat.org/credits>)
  *
  * This program is free software: you can redistribute it and/or modify
@@ -32,6 +32,8 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import androidx.recyclerview.widget.LinearSnapHelper
 import androidx.recyclerview.widget.PagerSnapHelper
+import com.google.android.material.snackbar.Snackbar
+import org.catrobat.catroid.ProjectManager
 import org.catrobat.catroid.R
 import org.catrobat.catroid.common.Constants
 import org.catrobat.catroid.common.FlavoredConstants.CATEGORY_URL
@@ -39,8 +41,9 @@ import org.catrobat.catroid.common.FlavoredConstants.DEFAULT_ROOT_DIRECTORY
 import org.catrobat.catroid.common.ProjectData
 import org.catrobat.catroid.databinding.FragmentMainMenuBinding
 import org.catrobat.catroid.io.ProjectAndSceneScreenshotLoader
-import org.catrobat.catroid.io.asynctask.ProjectLoadTask
-import org.catrobat.catroid.io.asynctask.ProjectLoadTask.ProjectLoadListener
+import org.catrobat.catroid.io.asynctask.ProjectLoader
+import org.catrobat.catroid.io.asynctask.ProjectLoader.ProjectLoadListener
+import org.catrobat.catroid.io.asynctask.loadProject
 import org.catrobat.catroid.ui.PROJECT_DIR
 import org.catrobat.catroid.ui.ProjectActivity
 import org.catrobat.catroid.ui.ProjectListActivity
@@ -56,7 +59,6 @@ import org.catrobat.catroid.ui.recyclerview.adapter.HorizontalProjectsAdapter
 import org.catrobat.catroid.ui.recyclerview.dialog.NewProjectDialogFragment
 import org.catrobat.catroid.ui.recyclerview.viewmodel.MainFragmentViewModel
 import org.catrobat.catroid.utils.FileMetaDataExtractor
-import org.catrobat.catroid.utils.NetworkConnectionMonitor
 import org.catrobat.catroid.utils.ProjectDownloadUtil.setFragment
 import org.catrobat.catroid.utils.ToastUtil
 import org.catrobat.catroid.utils.Utils
@@ -75,9 +77,9 @@ class MainMenuFragment : Fragment(),
     var currentProject: String? = null
     private lateinit var projectsAdapter: HorizontalProjectsAdapter
     private val viewModel: MainFragmentViewModel by viewModel()
-    private val connectionMonitor: NetworkConnectionMonitor by inject()
     private val featuredProjectsAdapter: FeaturedProjectsAdapter by inject()
     private val categoriesAdapter: CategoriesAdapter by inject()
+    private val projectManager: ProjectManager by inject()
     private var _binding: FragmentMainMenuBinding? = null
     private val binding get() = _binding!!
     private lateinit var progressBar: LinearLayout
@@ -105,6 +107,8 @@ class MainMenuFragment : Fragment(),
             progressBar.setVisibleOrGone(show)
         })
 
+        setupFeaturedProjectsRV()
+        setupCategoriesRV()
         setupViewVisibility()
 
         binding.editProject.setOnClickListener(this)
@@ -117,8 +121,6 @@ class MainMenuFragment : Fragment(),
         setFragment(this)
 
         setupProjectsRV()
-        setupFeaturedProjectsRV()
-        setupCategoriesRV()
         viewModel.setIsLoading(false)
     }
 
@@ -130,30 +132,29 @@ class MainMenuFragment : Fragment(),
         }.let {
             binding.categoriesRecyclerView.adapter = it
         }
-
-        viewModel.getProjectCategories().observe(viewLifecycleOwner, Observer { items ->
-            stopShimmer()
-            if (items.isNullOrEmpty()) {
-                return@Observer
-            }
-            categoriesAdapter.setItems(items)
-        })
     }
 
     private fun setupViewVisibility() {
-        connectionMonitor.observe(viewLifecycleOwner, Observer { connectionActive ->
-            viewModel.fetchData()
-            binding.noInternetLayout.setVisibleOrGone(connectionActive.not())
-            binding.featuredProjectsRecyclerView.setVisibleOrGone(connectionActive)
-            binding.featuredProjectsTextView.isEnabled = connectionActive
-            binding.categoriesRecyclerView.setVisibleOrGone(connectionActive)
+        viewModel.connectionStatusAndFeaturedProjectsAndProjectCategoriesLiveData()
+            .observe(viewLifecycleOwner, Observer {
+                val isConnectionActive = it.first
+                val featuredProjectsList = it.second
+                val projectsCategoriesList = it.third
 
-            if (connectionActive && viewModel.getProjectCategories().value == null) {
-                startShimmer()
-            } else {
-                stopShimmer()
-            }
-        })
+                val showNoInternetLayout = !isConnectionActive &&
+                    (featuredProjectsList.isNullOrEmpty() || projectsCategoriesList.isNullOrEmpty())
+                binding.noInternetLayout.setVisibleOrGone(showNoInternetLayout)
+                if (showNoInternetLayout) {
+                    return@Observer
+                }
+
+                binding.categoriesRecyclerView.setVisibleOrGone(!showNoInternetLayout)
+
+                featuredProjectsAdapter.setItems(featuredProjectsList)
+                binding.featuredProjectsRecyclerView.itemsCount = featuredProjectsList.size
+
+                categoriesAdapter.setItems(projectsCategoriesList)
+            })
     }
 
     private fun setupProjectsRV() {
@@ -183,21 +184,13 @@ class MainMenuFragment : Fragment(),
             PagerSnapHelper().attachToRecyclerView(binding.featuredProjectsRecyclerView)
             resumeAutoScroll()
         }
-
-        viewModel.getFeaturedProjects().observe(viewLifecycleOwner, Observer { items ->
-            if (items.isNullOrEmpty()) {
-                return@Observer
-            }
-
-            featuredProjectsAdapter.setItems(items)
-            binding.featuredProjectsRecyclerView.itemsCount = items.size
-        })
     }
 
     override fun onResume() {
         super.onResume()
-        connectionMonitor.registerDefaultNetworkCallback()
+        viewModel.registerNetworkCallback()
         viewModel.setIsLoading(false)
+        viewModel.update()
         val projectName = requireActivity().intent.getStringExtra(Constants.EXTRA_PROJECT_NAME)
         if (projectName != null) {
             requireActivity().intent.removeExtra(Constants.EXTRA_PROJECT_NAME)
@@ -208,20 +201,20 @@ class MainMenuFragment : Fragment(),
 
     override fun onPause() {
         super.onPause()
-        connectionMonitor.unregisterDefaultNetworkCallback()
+        viewModel.unregisterNetworkCallback()
     }
 
     private fun setAndLoadCurrentProject(myProjects: List<ProjectData>) {
         currentProject = if (myProjects.isNotEmpty()) {
             myProjects[0].name
         } else {
-            Utils.getCurrentProjectName(context)
+            Utils.getCurrentProjectName(requireContext())
         }
         val projectDir = File(
             DEFAULT_ROOT_DIRECTORY,
             FileMetaDataExtractor.encodeSpecialCharsForFileSystem(currentProject)
         )
-        ProjectLoadTask.task(projectDir, context)
+        loadProject(projectDir, requireContext())
         loadProjectImage()
     }
 
@@ -230,9 +223,9 @@ class MainMenuFragment : Fragment(),
             DEFAULT_ROOT_DIRECTORY,
             FileMetaDataExtractor.encodeSpecialCharsForFileSystem(name)
         )
-        ProjectLoadTask(projectDir, context)
+        ProjectLoader(projectDir, requireContext())
             .setListener(this)
-            .execute()
+            .loadProjectAsync()
     }
 
     override fun onLoadFinished(success: Boolean) {
@@ -277,9 +270,9 @@ class MainMenuFragment : Fragment(),
             FileMetaDataExtractor
                 .encodeSpecialCharsForFileSystem(projectData!!.name)
         )
-        ProjectLoadTask(projectDir, context)
+        ProjectLoader(projectDir, requireContext())
             .setListener(this)
-            .execute()
+            .loadProjectAsync()
     }
 
     fun refreshData() {
@@ -296,15 +289,22 @@ class MainMenuFragment : Fragment(),
                     DEFAULT_ROOT_DIRECTORY,
                     FileMetaDataExtractor.encodeSpecialCharsForFileSystem(currentProject)
                 )
-                ProjectLoadTask(projectDir, context)
+                ProjectLoader(projectDir, requireContext())
                     .setListener(this)
-                    .execute()
+                    .loadProjectAsync()
             }
 
             R.id.newProjectFloatingActionButton ->
                 NewProjectDialogFragment().show(parentFragmentManager, NewProjectDialogFragment.TAG)
 
             R.id.uploadProject -> {
+                if (Utils.isDefaultProject(projectManager.currentProject, activity)) {
+                    binding.root.apply {
+                        Snackbar.make(binding.root, R.string.error_upload_default_project, Snackbar.LENGTH_LONG).show()
+                    }
+                    return
+                }
+
                 viewModel.setIsLoading(true)
                 val intent = Intent(activity, ProjectUploadActivity::class.java)
                     .putExtra(
@@ -345,20 +345,6 @@ class MainMenuFragment : Fragment(),
         webViewActivityIntent.putExtra(WebViewActivity.INTENT_PARAMETER_URL, url)
         viewModel.setIsLoading(true)
         startActivity(webViewActivityIntent)
-    }
-
-    private fun stopShimmer() {
-        binding.shimmerViewContainer.apply {
-            stopShimmer()
-            setVisibleOrGone(false)
-        }
-    }
-
-    private fun startShimmer() {
-        binding.shimmerViewContainer.apply {
-            setVisibleOrGone(true)
-            startShimmer()
-        }
     }
 
     companion object {

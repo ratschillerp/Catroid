@@ -1,6 +1,6 @@
 /*
  * Catroid: An on-device visual programming system for Android devices
- * Copyright (C) 2010-2021 The Catrobat Team
+ * Copyright (C) 2010-2022 The Catrobat Team
  * (<http://developer.catrobat.org/credits>)
  *
  * This program is free software: you can redistribute it and/or modify
@@ -421,24 +421,28 @@ public class Look extends Image {
 	}
 
 	public float getXVelocityInUserInterfaceDimensionUnit() {
-		// only available in physicsLook
+		if (sprite.isGliding()) {
+			return sprite.getGlidingVelocityX();
+		}
 		return 0;
 	}
 
 	public float getYVelocityInUserInterfaceDimensionUnit() {
-		// only available in physicsLook
+		if (sprite.isGliding()) {
+			return sprite.getGlidingVelocityY();
+		}
 		return 0;
 	}
 
 	public void setPositionInUserInterfaceDimensionUnit(float x, float y) {
 		adjustSimultaneousMovementXY(x, y);
 		setXInUserInterfaceDimensionUnit(x);
-		adjustSimultaneousMovementXY(this.getX(), y);
+		adjustSimultaneousMovementXY(getXInUserInterfaceDimensionUnit(), y);
 		setYInUserInterfaceDimensionUnit(y);
 	}
 
 	private void adjustSimultaneousMovementXY(float x, float y) {
-		simultaneousMovementXY = x != this.getX() && y != this.getY();
+		simultaneousMovementXY = x != getXInUserInterfaceDimensionUnit() && y != getYInUserInterfaceDimensionUnit();
 	}
 
 	public void changeXInUserInterfaceDimensionUnit(float changeX) {

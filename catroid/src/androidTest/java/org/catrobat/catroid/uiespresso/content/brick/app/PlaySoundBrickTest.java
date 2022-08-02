@@ -1,6 +1,6 @@
 /*
  * Catroid: An on-device visual programming system for Android devices
- * Copyright (C) 2010-2021 The Catrobat Team
+ * Copyright (C) 2010-2022 The Catrobat Team
  * (<http://developer.catrobat.org/credits>)
  *
  * This program is free software: you can redistribute it and/or modify
@@ -60,7 +60,7 @@ import static org.catrobat.catroid.common.Constants.SOUND_DIRECTORY_NAME;
 import static org.catrobat.catroid.uiespresso.content.brick.utils.BrickDataInteractionWrapper.onBrickAtPosition;
 import static org.catrobat.catroid.uiespresso.ui.fragment.rvutils.RecyclerViewInteractionWrapper.onRecyclerView;
 import static org.catrobat.catroid.uiespresso.util.UiTestUtils.getResourcesString;
-import static org.catrobat.catroid.uiespresso.util.UiTestUtils.openActionBar;
+import static org.catrobat.catroid.uiespresso.util.UiTestUtils.openActionBarMenu;
 import static org.catrobat.catroid.uiespresso.util.actions.TabActionsKt.selectTabAtPosition;
 import static org.hamcrest.Matchers.allOf;
 import static org.hamcrest.Matchers.instanceOf;
@@ -99,7 +99,7 @@ public class PlaySoundBrickTest {
 	private void renameSound(int position, String newSoundName) {
 		onView(withId(R.id.tab_layout))
 				.perform(selectTabAtPosition(SpriteActivity.FRAGMENT_SOUNDS));
-		openActionBar();
+		openActionBarMenu();
 		onView(withText(R.string.rename))
 				.perform(click());
 		onRecyclerView().atPosition(position)
@@ -114,7 +114,7 @@ public class PlaySoundBrickTest {
 	private void deleteSound(int position) {
 		onView(withId(R.id.tab_layout))
 				.perform(selectTabAtPosition(SpriteActivity.FRAGMENT_SOUNDS));
-		openActionBar();
+		openActionBarMenu();
 		onView(withText(R.string.delete))
 				.perform(click());
 		onRecyclerView().atPosition(position)
@@ -147,7 +147,7 @@ public class PlaySoundBrickTest {
 				.perform(click());
 
 		onBrickAtPosition(1).onSpinner(R.id.brick_play_sound_spinner)
-				.checkShowsText(getResourcesString(R.string.soundrecorder_recorded_filename) + " (1)");
+				.checkShowsText(getResourcesString(R.string.soundrecorder_recorded_filename));
 		onBrickAtPosition(2).onSpinner(R.id.brick_play_sound_spinner)
 				.checkShowsText(soundName);
 	}

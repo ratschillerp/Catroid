@@ -1,6 +1,6 @@
 /*
  * Catroid: An on-device visual programming system for Android devices
- * Copyright (C) 2010-2018 The Catrobat Team
+ * Copyright (C) 2010-2022 The Catrobat Team
  * (<http://developer.catrobat.org/credits>)
  *
  * This program is free software: you can redistribute it and/or modify
@@ -28,7 +28,7 @@ import android.widget.ImageView;
 
 import org.catrobat.catroid.R;
 import org.catrobat.catroid.common.NfcTagData;
-import org.catrobat.catroid.ui.recyclerview.viewholder.ExtendedVH;
+import org.catrobat.catroid.ui.recyclerview.viewholder.ExtendedViewHolder;
 
 import java.util.List;
 
@@ -39,7 +39,7 @@ public class NfcTagAdapter extends ExtendedRVAdapter<NfcTagData> {
 	}
 
 	@Override
-	public void onBindViewHolder(ExtendedVH holder, int position) {
+	public void onBindViewHolder(ExtendedViewHolder holder, int position) {
 		NfcTagData item = items.get(position);
 
 		holder.title.setText(item.getName());

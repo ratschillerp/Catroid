@@ -1,6 +1,6 @@
 /*
  * Catroid: An on-device visual programming system for Android devices
- * Copyright (C) 2010-2021 The Catrobat Team
+ * Copyright (C) 2010-2022 The Catrobat Team
  * (<http://developer.catrobat.org/credits>)
  *
  * This program is free software: you can redistribute it and/or modify
@@ -23,6 +23,7 @@
 package org.catrobat.catroid.ui.recyclerview.fragment;
 
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
@@ -36,10 +37,12 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.inputmethod.InputMethodManager;
+import android.widget.ListAdapter;
 
 import org.catrobat.catroid.BuildConfig;
 import org.catrobat.catroid.ProjectManager;
 import org.catrobat.catroid.R;
+import org.catrobat.catroid.common.ScreenValues;
 import org.catrobat.catroid.content.Project;
 import org.catrobat.catroid.content.Scene;
 import org.catrobat.catroid.content.Script;
@@ -58,11 +61,12 @@ import org.catrobat.catroid.formulaeditor.UserList;
 import org.catrobat.catroid.formulaeditor.UserVariable;
 import org.catrobat.catroid.io.StorageOperations;
 import org.catrobat.catroid.io.XstreamSerializer;
-import org.catrobat.catroid.io.asynctask.ProjectLoadTask;
+import org.catrobat.catroid.io.asynctask.ProjectLoader;
 import org.catrobat.catroid.io.asynctask.ProjectSaver;
 import org.catrobat.catroid.ui.BottomBar;
 import org.catrobat.catroid.ui.ScriptFinder;
 import org.catrobat.catroid.ui.SpriteActivity;
+import org.catrobat.catroid.ui.UiUtils;
 import org.catrobat.catroid.ui.controller.BackpackListManager;
 import org.catrobat.catroid.ui.controller.RecentBrickListManager;
 import org.catrobat.catroid.ui.dragndrop.BrickListView;
@@ -89,6 +93,7 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 import androidx.annotation.IntDef;
 import androidx.annotation.Nullable;
@@ -108,7 +113,7 @@ public class ScriptFragment extends ListFragment implements
 		BrickAdapter.OnItemClickListener,
 		BrickAdapter.SelectionListener, OnCategorySelectedListener,
 		AddBrickFragment.OnAddBrickListener,
-		ProjectLoadTask.ProjectLoadListener {
+		ProjectLoader.ProjectLoadListener {
 
 	public static final String TAG = ScriptFragment.class.getSimpleName();
 	private static final String BRICK_TAG = "brickToFocus";
@@ -274,6 +279,9 @@ public class ScriptFragment extends ListFragment implements
 	public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 		View view = View.inflate(getActivity(), R.layout.fragment_script, null);
 		listView = view.findViewById(android.R.id.list);
+		int bottomListPadding = ScreenValues.SCREEN_HEIGHT / 3;
+		listView.setPadding(0, 0, 0, bottomListPadding);
+		listView.setClipToPadding(false);
 
 		activity = (SpriteActivity) getActivity();
 
@@ -317,7 +325,6 @@ public class ScriptFragment extends ListFragment implements
 		});
 
 		setHasOptionsMenu(true);
-		SnackbarUtil.showHintSnackbar(getActivity(), R.string.hint_scripts);
 		return view;
 	}
 
@@ -405,6 +412,7 @@ public class ScriptFragment extends ListFragment implements
 		}
 
 		scrollToFocusItem();
+		SnackbarUtil.showHintSnackbar(getActivity(), R.string.hint_scripts);
 	}
 
 	@Override
@@ -504,8 +512,6 @@ public class ScriptFragment extends ListFragment implements
 				.add(R.id.fragment_container, brickCategoryFragment, BrickCategoryFragment.BRICK_CATEGORY_FRAGMENT_TAG)
 				.addToBackStack(BrickCategoryFragment.BRICK_CATEGORY_FRAGMENT_TAG)
 				.commit();
-
-		SnackbarUtil.showHintSnackbar(getActivity(), R.string.hint_category);
 	}
 
 	@Override
@@ -641,26 +647,35 @@ public class ScriptFragment extends ListFragment implements
 			listView.cancelHighlighting();
 			return;
 		}
-		List<Integer> options = getContextMenuItems(brick);
-		CharSequence[] items = new CharSequence[options.size()];
 
-		for (int i = 0; i < options.size(); i++) {
-			items[i] = getString(options.get(i));
+		List<Integer> options = getContextMenuItems(brick);
+		List<String> names = new ArrayList<>();
+		for (Integer option: options) {
+			names.add(getString(option));
 		}
+
+		ListAdapter arrayAdapter = UiUtils.getAlertDialogAdapterForMenuIcons(options, names,
+				requireContext(), requireActivity());
 
 		View brickView = brick.getView(getContext());
 		brick.disableSpinners();
 
 		new AlertDialog.Builder(getContext())
-				.setCustomTitle(brickView)
-				.setItems(items, (dialog, which) -> handleContextMenuItemClick(options.get(which), brick, position))
-				.show();
+			.setCustomTitle(brickView)
+			.setAdapter(arrayAdapter, new DialogInterface.OnClickListener() {
+				@Override
+				public void onClick(DialogInterface dialog, int which) {
+					handleContextMenuItemClick(options.get(which), brick, position);
+				}
+			}).show();
 	}
 
-	private List<Integer> getContextMenuItems(Brick brick) {
+	@VisibleForTesting
+	public static List<Integer> getContextMenuItems(Brick brick) {
 		List<Integer> items = new ArrayList<>();
 
 		if (brick instanceof UserDefinedReceiverBrick) {
+			items.add(R.string.backpack_add);
 			items.add(R.string.brick_context_dialog_delete_definition);
 			items.add(R.string.brick_context_dialog_move_definition);
 			items.add(R.string.brick_context_dialog_help);
@@ -680,7 +695,7 @@ public class ScriptFragment extends ListFragment implements
 
 			items.add(R.string.brick_context_dialog_delete_script);
 
-			if (brick instanceof FormulaBrick) {
+			if (brick instanceof FormulaBrick && ((FormulaBrick) brick).hasEditableFormulaField()) {
 				items.add(R.string.brick_context_dialog_formula_edit_brick);
 			}
 			items.add(R.string.brick_context_dialog_move_script);
@@ -699,14 +714,8 @@ public class ScriptFragment extends ListFragment implements
 			if (brick instanceof VisualPlacementBrick && ((VisualPlacementBrick) brick).areAllBrickFieldsNumbers()) {
 				items.add(R.string.brick_option_place_visually);
 			}
-			if (brick instanceof FormulaBrick) {
-				if (brick instanceof UserDefinedBrick) {
-					if (((UserDefinedBrick) brick).containsInputs()) {
-						items.add(R.string.brick_context_dialog_formula_edit_brick);
-					}
-				} else {
-					items.add(R.string.brick_context_dialog_formula_edit_brick);
-				}
+			if (brick instanceof FormulaBrick && ((FormulaBrick) brick).hasEditableFormulaField()) {
+				items.add(R.string.brick_context_dialog_formula_edit_brick);
 			}
 			if (brick.equals(brick.getAllParts().get(0))) {
 				items.add(R.string.brick_context_dialog_move_brick);
@@ -724,7 +733,7 @@ public class ScriptFragment extends ListFragment implements
 		switch (itemId) {
 			case R.string.backpack_add:
 				List<Brick> bricksToPack = new ArrayList<>();
-				bricksToPack.add(brick);
+				brick.addToFlatList(bricksToPack);
 				showNewScriptGroupAlert(bricksToPack);
 				break;
 			case R.string.brick_context_dialog_copy_brick:
@@ -862,21 +871,23 @@ public class ScriptFragment extends ListFragment implements
 			return;
 		}
 
-		int scriptIndex = -1;
 		int firstVisible = listView.getFirstVisiblePosition();
-
+		UUID firstVisibleBrickID = null;
 		if (listView.getCount() > 0 && firstVisible >= 0) {
-			Object firstBrick = listView.getItemAtPosition(firstVisible);
-			if (firstBrick instanceof Brick) {
-				Script scriptOfBrick = ((Brick) firstBrick).getScript();
-				scriptIndex =
-						ProjectManager.getInstance().getCurrentSprite().getScriptIndex(scriptOfBrick);
+			Object firstVisibleObject = listView.getItemAtPosition(firstVisible);
+			if (firstVisibleObject instanceof Brick) {
+				Brick firstVisibleBrick = (Brick) firstVisibleObject;
+				if (firstVisibleBrick instanceof ScriptBrick) {
+					firstVisibleBrickID = firstVisibleBrick.getScript().getScriptId();
+				} else {
+					firstVisibleBrickID = firstVisibleBrick.getBrickID();
+				}
 			}
 		}
 
 		SettingsFragment.setUseCatBlocks(getContext(), true);
 
-		CatblocksScriptFragment catblocksFragment = new CatblocksScriptFragment(scriptIndex);
+		CatblocksScriptFragment catblocksFragment = new CatblocksScriptFragment(firstVisibleBrickID);
 
 		FragmentTransaction fragmentTransaction = getFragmentManager().beginTransaction();
 		fragmentTransaction.replace(R.id.fragment_container, catblocksFragment,
@@ -947,7 +958,7 @@ public class ScriptFragment extends ListFragment implements
 		if (currentCodeFile.exists()) {
 			try {
 				StorageOperations.transferData(undoCodeFile, currentCodeFile);
-				new ProjectLoadTask(project.getDirectory(), getContext()).setListener(this).execute();
+				new ProjectLoader(project.getDirectory(), getContext()).setListener(this).loadProjectAsync();
 			} catch (IOException exception) {
 				Log.e(TAG, "Replaceing project " + project.getName() + " failed.", exception);
 			}

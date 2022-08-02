@@ -1,6 +1,6 @@
 /*
  * Catroid: An on-device visual programming system for Android devices
- * Copyright (C) 2010-2021 The Catrobat Team
+ * Copyright (C) 2010-2022 The Catrobat Team
  * (<http://developer.catrobat.org/credits>)
  *
  * This program is free software: you can redistribute it and/or modify
@@ -38,6 +38,7 @@ import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.nio.channels.FileChannel;
 import java.nio.file.InvalidPathException;
 
@@ -104,7 +105,10 @@ public final class StorageOperations {
 			try {
 				try (Cursor cursor = contentResolver.query(uri, null, null, null, null)) {
 					if (cursor != null && cursor.moveToFirst()) {
-						result = cursor.getString(cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME));
+						int index = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME);
+						if (index >= 0) {
+							result = cursor.getString(index);
+						}
 					}
 				}
 			} catch (Exception e) {
@@ -140,23 +144,23 @@ public final class StorageOperations {
 		}
 	}
 
-	public static File compressBitmapToPng(Bitmap bitmap, File destiantionFile) throws IOException {
-		try (FileOutputStream os = new FileOutputStream(destiantionFile)) {
+	public static File compressBitmapToPng(Bitmap bitmap, File destinationFile) throws IOException {
+		try (FileOutputStream os = new FileOutputStream(destinationFile)) {
 			bitmap.compress(Bitmap.CompressFormat.PNG, 100, os);
 		}
-		return destiantionFile;
+		return destinationFile;
 	}
 
 	public static File duplicateFile(File source) throws IOException {
 		return copyFileToDir(source, source.getParentFile());
 	}
 
-	public static File copyFile(File sourceFile, File destiantionFile) throws IOException {
+	public static File copyFile(File sourceFile, File destinationFile) throws IOException {
 		if (!sourceFile.exists()) {
 			throw new FileNotFoundException(sourceFile.getAbsolutePath() + " does not exist.");
 		}
-		transferData(sourceFile, destiantionFile);
-		return destiantionFile;
+		transferData(sourceFile, destinationFile);
+		return destinationFile;
 	}
 
 	public static File copyFileToDir(File sourceFile, File destinationDir) throws IOException {
@@ -172,10 +176,10 @@ public final class StorageOperations {
 			throw new IOException(destinationDir.getAbsolutePath() + " is not a directory.");
 		}
 
-		File destiantionFile = getUniqueFile(sourceFile.getName(), destinationDir);
-		transferData(sourceFile, destiantionFile);
+		File destinationFile = getUniqueFile(sourceFile.getName(), destinationDir);
+		transferData(sourceFile, destinationFile);
 
-		return destiantionFile;
+		return destinationFile;
 	}
 
 	public static File copyStreamToFile(InputStream inputStream, File destinationFile) throws IOException {
@@ -205,9 +209,22 @@ public final class StorageOperations {
 		return transferData(inputStream, destinationFile);
 	}
 
-	public static File copyUriToDir(ContentResolver contentResolver, Uri uri, File destinationDir, String fileName) throws IOException {
+	public static File copyUriToDir(ContentResolver contentResolver, Uri uri,
+			File destinationDir, String fileName) throws IOException {
 		InputStream inputStream = contentResolver.openInputStream(uri);
 		return copyStreamToDir(inputStream, destinationDir, fileName);
+	}
+
+	public static void copyFileContentToUri(ContentResolver contentResolver, Uri uri,
+			File sourceFile) throws IOException {
+		byte[] b = new byte[BUFFER_8K];
+		int len;
+		try (FileInputStream inputStream = new FileInputStream(sourceFile);
+				OutputStream outputStream = contentResolver.openOutputStream(uri)) {
+			while ((len = inputStream.read(b)) != -1) {
+				outputStream.write(b, 0, len);
+			}
+		}
 	}
 
 	public static void transferData(File sourceFile, File destinationFile) throws IOException {
@@ -248,11 +265,14 @@ public final class StorageOperations {
 			throw new IOException("Cannot create directory: " + destinationDir.getAbsolutePath());
 		}
 
-		for (File file : sourceDir.listFiles()) {
-			if (file.isDirectory()) {
-				copyDir(file, new File(destinationDir, file.getName()));
-			} else {
-				copyFileToDir(file, destinationDir);
+		File[] files = sourceDir.listFiles();
+		if (files != null) {
+			for (File file : files) {
+				if (file.isDirectory()) {
+					copyDir(file, new File(destinationDir, file.getName()));
+				} else {
+					copyFileToDir(file, destinationDir);
+				}
 			}
 		}
 
@@ -314,14 +334,16 @@ public final class StorageOperations {
 			throw new FileNotFoundException(dir.getAbsolutePath() + " is not a directory.");
 		}
 
-		for (File file : dir.listFiles()) {
-			if (file.isDirectory()) {
-				deleteDir(file);
-			} else {
-				deleteFile(file);
+		File[] files = dir.listFiles();
+		if (files != null) {
+			for (File file : files) {
+				if (file.isDirectory()) {
+					deleteDir(file);
+				} else {
+					deleteFile(file);
+				}
 			}
 		}
-
 		if (!dir.delete()) {
 			throw new IOException("Cannot delete directory: " + dir.getAbsolutePath());
 		}

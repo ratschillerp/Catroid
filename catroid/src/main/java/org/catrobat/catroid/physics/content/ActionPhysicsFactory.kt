@@ -1,6 +1,6 @@
 /*
  * Catroid: An on-device visual programming system for Android devices
- * Copyright (C) 2010-2021 The Catrobat Team
+ * Copyright (C) 2010-2022 The Catrobat Team
  * (<http://developer.catrobat.org/credits>)
  *
  * This program is free software: you can redistribute it and/or modify
@@ -64,7 +64,6 @@ class ActionPhysicsFactory : ActionFactory() {
         val scope = Scope(ProjectManager.getInstance().currentProject, sprite, sequence)
         action.setScope(scope)
         action.setPhysicsLook(sprite.look as PhysicsLook)
-        action.setPhysicsObject(getPhysicsObject(sprite))
         return action
     }
 

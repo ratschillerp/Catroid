@@ -1,6 +1,6 @@
 /*
  * Catroid: An on-device visual programming system for Android devices
- * Copyright (C) 2010-2018 The Catrobat Team
+ * Copyright (C) 2010-2022 The Catrobat Team
  * (<http://developer.catrobat.org/credits>)
  *
  * This program is free software: you can redistribute it and/or modify
@@ -69,8 +69,7 @@ public class PocketMusicActivity extends BaseActivity {
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 
-		midiFolder = new File(ProjectManager.getInstance().getCurrentlyEditedScene().getDirectory(),
-				SOUND_DIRECTORY_NAME);
+		midiFolder = new File(getApplicationContext().getFilesDir().getPath(), SOUND_DIRECTORY_NAME);
 
 		midiDriver = new MidiNotePlayer();
 

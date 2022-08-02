@@ -1,6 +1,6 @@
 /*
  * Catroid: An on-device visual programming system for Android devices
- * Copyright (C) 2010-2021 The Catrobat Team
+ * Copyright (C) 2010-2022 The Catrobat Team
  * (<http://developer.catrobat.org/credits>)
  *
  * This program is free software: you can redistribute it and/or modify
@@ -48,7 +48,7 @@ import org.catrobat.catroid.ui.ScratchProgramDetailsActivity;
 import org.catrobat.catroid.ui.ViewUtils;
 import org.catrobat.catroid.ui.recyclerview.adapter.RVAdapter;
 import org.catrobat.catroid.ui.recyclerview.adapter.ScratchProgramAdapter;
-import org.catrobat.catroid.ui.recyclerview.viewholder.CheckableVH;
+import org.catrobat.catroid.ui.recyclerview.viewholder.CheckableViewHolder;
 import org.catrobat.catroid.utils.ToastUtil;
 import org.catrobat.catroid.utils.Utils;
 import org.catrobat.catroid.web.CatrobatWebClient;
@@ -373,7 +373,7 @@ public class ScratchSearchResultsFragment extends Fragment implements
 	}
 
 	@Override
-	public void onItemLongClick(final ScratchProgramData item, CheckableVH holder) {
+	public void onItemLongClick(final ScratchProgramData item, CheckableViewHolder holder) {
 	}
 
 	@Override

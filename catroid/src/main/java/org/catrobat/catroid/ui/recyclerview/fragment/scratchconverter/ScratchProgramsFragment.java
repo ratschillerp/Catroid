@@ -1,6 +1,6 @@
 /*
  * Catroid: An on-device visual programming system for Android devices
- * Copyright (C) 2010-2018 The Catrobat Team
+ * Copyright (C) 2010-2022 The Catrobat Team
  * (<http://developer.catrobat.org/credits>)
  *
  * This program is free software: you can redistribute it and/or modify
@@ -31,13 +31,13 @@ import android.view.ViewGroup;
 import android.widget.LinearLayout;
 
 import org.catrobat.catroid.R;
-import org.catrobat.catroid.io.asynctask.ProjectLoadTask;
+import org.catrobat.catroid.io.asynctask.ProjectLoader;
 import org.catrobat.catroid.scratchconverter.protocol.Job;
 import org.catrobat.catroid.ui.ProjectActivity;
 import org.catrobat.catroid.ui.ScratchConverterActivity;
 import org.catrobat.catroid.ui.recyclerview.adapter.RVAdapter;
 import org.catrobat.catroid.ui.recyclerview.adapter.ScratchJobAdapter;
-import org.catrobat.catroid.ui.recyclerview.viewholder.CheckableVH;
+import org.catrobat.catroid.ui.recyclerview.viewholder.CheckableViewHolder;
 import org.catrobat.catroid.utils.FileMetaDataExtractor;
 import org.catrobat.catroid.utils.ToastUtil;
 
@@ -53,7 +53,7 @@ import static org.catrobat.catroid.common.FlavoredConstants.DEFAULT_ROOT_DIRECTO
 public class ScratchProgramsFragment extends Fragment implements
 		ScratchConverterActivity.OnJobListListener,
 		RVAdapter.OnItemClickListener<Job>,
-		ProjectLoadTask.ProjectLoadListener {
+		ProjectLoader.ProjectLoadListener {
 
 	public static final String TAG = ScratchProgramsFragment.class.getSimpleName();
 
@@ -146,9 +146,9 @@ public class ScratchProgramsFragment extends Fragment implements
 
 		setShowProgressBar(true);
 
-		new ProjectLoadTask(projectDir, getContext())
+		new ProjectLoader(projectDir, getContext())
 				.setListener(this)
-				.execute();
+				.loadProjectAsync();
 	}
 
 	public void setShowProgressBar(boolean show) {
@@ -170,7 +170,7 @@ public class ScratchProgramsFragment extends Fragment implements
 	}
 
 	@Override
-	public void onItemLongClick(Job item, CheckableVH holder) {
+	public void onItemLongClick(Job item, CheckableViewHolder holder) {
 	}
 
 	@Override

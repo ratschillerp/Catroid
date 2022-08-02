@@ -1,6 +1,6 @@
 /*
  * Catroid: An on-device visual programming system for Android devices
- * Copyright (C) 2010-2018 The Catrobat Team
+ * Copyright (C) 2010-2022 The Catrobat Team
  * (<http://developer.catrobat.org/credits>)
  *
  * This program is free software: you can redistribute it and/or modify
@@ -742,14 +742,19 @@ public class InternFormula {
 				List<InternToken> functionFirstParameter = functionParameters.get(0);
 				String functionName = functionInternTokenList.get(0).getTokenStringValue();
 
-				if (userListNotFirstParameter(functionName, functionFirstParameter.get(0))) {
-					functionFirstParameter = functionParameters.get(1);
-					insertedInternTokenIndex += 2;
+				if (functionFirstParameter.isEmpty()) {
+					internFormulaTokenSelection = null;
+					cursorPositionInternTokenIndex = insertedInternTokenIndex + 1;
+				} else {
+					if (userListNotFirstParameter(functionName, functionFirstParameter.get(0))) {
+						functionFirstParameter = functionParameters.get(1);
+						insertedInternTokenIndex += 2;
+					}
+					internFormulaTokenSelection = new InternFormulaTokenSelection(TokenSelectionType.USER_SELECTION,
+							insertedInternTokenIndex + 2,
+							insertedInternTokenIndex + functionFirstParameter.size() + 1);
+					cursorPositionInternTokenIndex = internFormulaTokenSelection.getEndIndex();
 				}
-
-				internFormulaTokenSelection = new InternFormulaTokenSelection(TokenSelectionType.USER_SELECTION,
-						insertedInternTokenIndex + 2, insertedInternTokenIndex + functionFirstParameter.size() + 1);
-				cursorPositionInternTokenIndex = internFormulaTokenSelection.getEndIndex();
 			} else {
 				cursorPositionInternTokenIndex = insertedInternTokenIndex + functionInternTokenList.size() - 1;
 				internFormulaTokenSelection = null;
@@ -1172,5 +1177,9 @@ public class InternFormula {
 		}
 		return !(cursorTokenPosition == null
 				|| (cursorTokenPosition == CursorTokenPosition.LEFT && getFirstLeftInternToken(externCursorPosition - 1) == null));
+	}
+
+	public void setInternTokenFormulaList(List<InternToken> list) {
+		internTokenFormulaList = list;
 	}
 }

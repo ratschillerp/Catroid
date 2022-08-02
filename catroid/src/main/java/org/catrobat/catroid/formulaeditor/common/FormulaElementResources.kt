@@ -1,6 +1,6 @@
 /*
  * Catroid: An on-device visual programming system for Android devices
- * Copyright (C) 2010-2021 The Catrobat Team
+ * Copyright (C) 2010-2022 The Catrobat Team
  * (<http://developer.catrobat.org/credits>)
  *
  * This program is free software: you can redistribute it and/or modify
@@ -41,12 +41,12 @@ object FormulaElementResources {
         when (sensor) {
             Sensors.FACE_DETECTED,
             Sensors.FACE_SIZE,
-            Sensors.FACE_X_POSITION,
-            Sensors.FACE_Y_POSITION,
+            Sensors.FACE_X,
+            Sensors.FACE_Y,
             Sensors.SECOND_FACE_DETECTED,
             Sensors.SECOND_FACE_SIZE,
-            Sensors.SECOND_FACE_X_POSITION,
-            Sensors.SECOND_FACE_Y_POSITION -> Brick.FACE_DETECTION
+            Sensors.SECOND_FACE_X,
+            Sensors.SECOND_FACE_Y -> Brick.FACE_DETECTION
 
             Sensors.TEXT_FROM_CAMERA,
             Sensors.TEXT_BLOCKS_NUMBER,
@@ -63,8 +63,21 @@ object FormulaElementResources {
     }
 
     @JvmStatic
+    private fun addAIExtensionFunctionsResources(resources: MutableSet<Int?>, function: Functions?) {
+        when (function) {
+            Functions.ID_OF_DETECTED_OBJECT,
+            Functions.OBJECT_WITH_ID_VISIBLE -> Brick.OBJECT_DETECTION
+            else -> return
+        }.let { resources.add(it) }
+    }
+
+    @JvmStatic
     private fun addPoseDetectionSensorsResources(resources: MutableSet<Int?>, sensor: Sensors?) {
         when (sensor) {
+            Sensors.HEAD_TOP_X,
+            Sensors.HEAD_TOP_Y,
+            Sensors.NECK_X,
+            Sensors.NECK_Y,
             Sensors.NOSE_X,
             Sensors.NOSE_Y,
             Sensors.LEFT_EYE_INNER_X,
@@ -99,18 +112,18 @@ object FormulaElementResources {
             Sensors.LEFT_WRIST_Y,
             Sensors.RIGHT_WRIST_X,
             Sensors.RIGHT_WRIST_Y,
-            Sensors.LEFT_PINKY_KNUCKLE_X,
-            Sensors.LEFT_PINKY_KNUCKLE_Y,
-            Sensors.RIGHT_PINKY_KNUCKLE_X,
-            Sensors.RIGHT_PINKY_KNUCKLE_Y,
-            Sensors.LEFT_INDEX_KNUCKLE_X,
-            Sensors.LEFT_INDEX_KNUCKLE_Y,
-            Sensors.RIGHT_INDEX_KNUCKLE_X,
-            Sensors.RIGHT_INDEX_KNUCKLE_Y,
-            Sensors.LEFT_THUMB_KNUCKLE_X,
-            Sensors.LEFT_THUMB_KNUCKLE_Y,
-            Sensors.RIGHT_THUMB_KNUCKLE_X,
-            Sensors.RIGHT_THUMB_KNUCKLE_Y,
+            Sensors.LEFT_PINKY_X,
+            Sensors.LEFT_PINKY_Y,
+            Sensors.RIGHT_PINKY_X,
+            Sensors.RIGHT_PINKY_Y,
+            Sensors.LEFT_INDEX_X,
+            Sensors.LEFT_INDEX_Y,
+            Sensors.RIGHT_INDEX_X,
+            Sensors.RIGHT_INDEX_Y,
+            Sensors.LEFT_THUMB_X,
+            Sensors.LEFT_THUMB_Y,
+            Sensors.RIGHT_THUMB_X,
+            Sensors.RIGHT_THUMB_Y,
             Sensors.LEFT_HIP_X,
             Sensors.LEFT_HIP_Y,
             Sensors.RIGHT_HIP_X,
@@ -203,6 +216,7 @@ object FormulaElementResources {
 
     @JvmStatic
     fun addFunctionResources(resources: MutableSet<Int?>, functions: Functions?) {
+        addAIExtensionFunctionsResources(resources, functions)
         when (functions) {
             Functions.ARDUINOANALOG, Functions.ARDUINODIGITAL -> Brick.BLUETOOTH_SENSORS_ARDUINO
             Functions.RASPIDIGITAL -> Brick.SOCKET_RASPI

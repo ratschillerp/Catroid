@@ -1,6 +1,6 @@
 /*
  * Catroid: An on-device visual programming system for Android devices
- * Copyright (C) 2010-2021 The Catrobat Team
+ * Copyright (C) 2010-2022 The Catrobat Team
  * (<http://developer.catrobat.org/credits>)
  *
  * This program is free software: you can redistribute it and/or modify
@@ -129,19 +129,23 @@ public class InternToExternGenerator {
 		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Sensors.FACE_DETECTED.name(),
 				R.string.formula_editor_sensor_face_detected);
 		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Sensors.FACE_SIZE.name(), R.string.formula_editor_sensor_face_size);
-		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Sensors.FACE_X_POSITION.name(),
+		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Sensors.FACE_X.name(),
 				R.string.formula_editor_sensor_face_x_position);
-		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Sensors.FACE_Y_POSITION.name(),
+		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Sensors.FACE_Y.name(),
 				R.string.formula_editor_sensor_face_y_position);
 		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Sensors.SECOND_FACE_DETECTED.name(),
 				R.string.formula_editor_sensor_second_face_detected);
 		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Sensors.SECOND_FACE_SIZE.name(),
 				R.string.formula_editor_sensor_second_face_size);
-		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Sensors.SECOND_FACE_X_POSITION.name(),
+		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Sensors.SECOND_FACE_X.name(),
 				R.string.formula_editor_sensor_second_face_x_position);
-		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Sensors.SECOND_FACE_Y_POSITION.name(),
+		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Sensors.SECOND_FACE_Y.name(),
 				R.string.formula_editor_sensor_second_face_y_position);
 
+		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Sensors.HEAD_TOP_X.name(), R.string.formula_editor_sensor_head_top_x);
+		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Sensors.HEAD_TOP_Y.name(), R.string.formula_editor_sensor_head_top_y);
+		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Sensors.NECK_X.name(), R.string.formula_editor_sensor_neck_x);
+		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Sensors.NECK_Y.name(), R.string.formula_editor_sensor_neck_y);
 		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Sensors.NOSE_X.name(), R.string.formula_editor_sensor_nose_x);
 		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Sensors.NOSE_Y.name(), R.string.formula_editor_sensor_nose_y);
 		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Sensors.LEFT_EYE_INNER_X.name(), R.string.formula_editor_sensor_left_eye_inner_x);
@@ -176,18 +180,18 @@ public class InternToExternGenerator {
 		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Sensors.LEFT_WRIST_Y.name(), R.string.formula_editor_sensor_left_wrist_y);
 		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Sensors.RIGHT_WRIST_X.name(), R.string.formula_editor_sensor_right_wrist_x);
 		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Sensors.RIGHT_WRIST_Y.name(), R.string.formula_editor_sensor_right_wrist_y);
-		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Sensors.LEFT_PINKY_KNUCKLE_X.name(), R.string.formula_editor_sensor_left_pinky_knuckle_x);
-		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Sensors.LEFT_PINKY_KNUCKLE_Y.name(), R.string.formula_editor_sensor_left_pinky_knuckle_y);
-		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Sensors.RIGHT_PINKY_KNUCKLE_X.name(), R.string.formula_editor_sensor_right_pinky_knuckle_x);
-		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Sensors.RIGHT_PINKY_KNUCKLE_Y.name(), R.string.formula_editor_sensor_right_pinky_knuckle_y);
-		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Sensors.LEFT_INDEX_KNUCKLE_X.name(), R.string.formula_editor_sensor_left_index_knuckle_x);
-		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Sensors.LEFT_INDEX_KNUCKLE_Y.name(), R.string.formula_editor_sensor_left_index_knuckle_y);
-		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Sensors.RIGHT_INDEX_KNUCKLE_X.name(), R.string.formula_editor_sensor_right_index_knuckle_x);
-		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Sensors.RIGHT_INDEX_KNUCKLE_Y.name(), R.string.formula_editor_sensor_right_index_knuckle_y);
-		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Sensors.LEFT_THUMB_KNUCKLE_X.name(), R.string.formula_editor_sensor_left_thumb_knuckle_x);
-		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Sensors.LEFT_THUMB_KNUCKLE_Y.name(), R.string.formula_editor_sensor_left_thumb_knuckle_y);
-		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Sensors.RIGHT_THUMB_KNUCKLE_X.name(), R.string.formula_editor_sensor_right_thumb_knuckle_x);
-		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Sensors.RIGHT_THUMB_KNUCKLE_Y.name(), R.string.formula_editor_sensor_right_thumb_knuckle_y);
+		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Sensors.LEFT_PINKY_X.name(), R.string.formula_editor_sensor_left_pinky_knuckle_x);
+		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Sensors.LEFT_PINKY_Y.name(), R.string.formula_editor_sensor_left_pinky_knuckle_y);
+		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Sensors.RIGHT_PINKY_X.name(), R.string.formula_editor_sensor_right_pinky_knuckle_x);
+		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Sensors.RIGHT_PINKY_Y.name(), R.string.formula_editor_sensor_right_pinky_knuckle_y);
+		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Sensors.LEFT_INDEX_X.name(), R.string.formula_editor_sensor_left_index_knuckle_x);
+		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Sensors.LEFT_INDEX_Y.name(), R.string.formula_editor_sensor_left_index_knuckle_y);
+		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Sensors.RIGHT_INDEX_X.name(), R.string.formula_editor_sensor_right_index_knuckle_x);
+		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Sensors.RIGHT_INDEX_Y.name(), R.string.formula_editor_sensor_right_index_knuckle_y);
+		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Sensors.LEFT_THUMB_X.name(), R.string.formula_editor_sensor_left_thumb_knuckle_x);
+		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Sensors.LEFT_THUMB_Y.name(), R.string.formula_editor_sensor_left_thumb_knuckle_y);
+		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Sensors.RIGHT_THUMB_X.name(), R.string.formula_editor_sensor_right_thumb_knuckle_x);
+		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Sensors.RIGHT_THUMB_Y.name(), R.string.formula_editor_sensor_right_thumb_knuckle_y);
 		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Sensors.LEFT_HIP_X.name(), R.string.formula_editor_sensor_left_hip_x);
 		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Sensors.LEFT_HIP_Y.name(), R.string.formula_editor_sensor_left_hip_y);
 		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Sensors.RIGHT_HIP_X.name(), R.string.formula_editor_sensor_right_hip_x);
@@ -307,6 +311,11 @@ public class InternToExternGenerator {
 
 		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Sensors.SPEECH_RECOGNITION_LANGUAGE.name(),
 				R.string.formula_editor_listening_language_sensor);
+
+		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.ID_OF_DETECTED_OBJECT.name(),
+				R.string.formula_editor_function_get_id_of_detected_object);
+		INTERN_EXTERN_LANGUAGE_CONVERTER_MAP.put(Functions.OBJECT_WITH_ID_VISIBLE.name(),
+				R.string.formula_editor_function_object_with_id_visible);
 	}
 	public InternToExternGenerator(Context context) {
 		this.context = context;

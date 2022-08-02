@@ -1,6 +1,6 @@
 /*
  * Catroid: An on-device visual programming system for Android devices
- * Copyright (C) 2010-2021 The Catrobat Team
+ * Copyright (C) 2010-2022 The Catrobat Team
  * (<http://developer.catrobat.org/credits>)
  *
  * This program is free software: you can redistribute it and/or modify
@@ -32,7 +32,7 @@ import android.widget.ImageView;
 import org.catrobat.catroid.R;
 import org.catrobat.catroid.ui.recyclerview.adapter.draganddrop.TouchHelperAdapterInterface;
 import org.catrobat.catroid.ui.recyclerview.adapter.multiselection.MultiSelectionManager;
-import org.catrobat.catroid.ui.recyclerview.viewholder.CheckableVH;
+import org.catrobat.catroid.ui.recyclerview.viewholder.CheckableViewHolder;
 import org.jetbrains.annotations.NotNull;
 
 import java.lang.annotation.Retention;
@@ -44,7 +44,7 @@ import java.util.List;
 import androidx.annotation.IntDef;
 import androidx.recyclerview.widget.RecyclerView;
 
-public abstract class RVAdapter<T> extends RecyclerView.Adapter<CheckableVH> implements TouchHelperAdapterInterface {
+public abstract class RVAdapter<T> extends RecyclerView.Adapter<CheckableViewHolder> implements TouchHelperAdapterInterface {
 
 	@Retention(RetentionPolicy.SOURCE)
 	@IntDef({SINGLE, PAIRS, MULTIPLE})
@@ -58,7 +58,7 @@ public abstract class RVAdapter<T> extends RecyclerView.Adapter<CheckableVH> imp
 	protected List<T> items;
 	public boolean showCheckBoxes = false;
 	public boolean showRipples = true;
-	public boolean hideSettings = false;
+	public boolean showSettings = true;
 
 	@SelectionType
 	public int selectionMode = MULTIPLE;
@@ -80,13 +80,13 @@ public abstract class RVAdapter<T> extends RecyclerView.Adapter<CheckableVH> imp
 	}
 
 	@Override
-	public CheckableVH onCreateViewHolder(@NotNull ViewGroup parent, int viewType) {
-		View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.vh_with_checkbox, parent, false);
-		return new CheckableVH(view);
+	public CheckableViewHolder onCreateViewHolder(@NotNull ViewGroup parent, int viewType) {
+		View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.view_holder_with_checkbox, parent, false);
+		return new CheckableViewHolder(view);
 	}
 
 	@Override
-	public void onBindViewHolder(CheckableVH holder, int position) {
+	public void onBindViewHolder(CheckableViewHolder holder, int position) {
 		T item = items.get(position);
 
 		holder.checkBox.setOnClickListener(v -> onCheckBoxClick(holder.getAdapterPosition()));
@@ -96,21 +96,25 @@ public abstract class RVAdapter<T> extends RecyclerView.Adapter<CheckableVH> imp
 			holder.settings.setOnClickListener(v -> onItemClickListener.onSettingsClick(item, v));
 		}
 
-		holder.itemView.setOnLongClickListener(v -> {
-			onItemClickListener.onItemLongClick(item, holder);
-			return true;
-		});
-
 		holder.checkBox.setVisibility(showCheckBoxes ? View.VISIBLE : View.GONE);
 		holder.checkBox.setChecked(selectionManager.isPositionSelected(position));
 
 		ImageView ripples = holder.itemView.findViewById(R.id.ic_ripples);
 		if (ripples != null && showRipples) {
 			ripples.setVisibility(View.VISIBLE);
+			holder.itemView.setOnLongClickListener(v -> {
+				onItemClickListener.onItemLongClick(item, holder);
+				return true;
+			});
+		} else if (ripples != null && !showRipples) {
+			ripples.setVisibility(View.GONE);
+			holder.itemView.setOnLongClickListener(v -> true);
 		}
 
-		ImageButton settings = holder.itemView.findViewById(R.id.settingsButton);
-		if (settings != null && hideSettings) {
+		ImageButton settings = holder.itemView.findViewById(R.id.settings_button);
+		if (settings != null && showSettings) {
+			settings.setVisibility(View.VISIBLE);
+		} else if (settings != null && !showSettings) {
 			settings.setVisibility(View.GONE);
 		}
 	}
@@ -258,7 +262,7 @@ public abstract class RVAdapter<T> extends RecyclerView.Adapter<CheckableVH> imp
 
 		void onItemClick(T item);
 
-		void onItemLongClick(T item, CheckableVH holder);
+		void onItemLongClick(T item, CheckableViewHolder holder);
 
 		void onSettingsClick(T item, View view);
 	}

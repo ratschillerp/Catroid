@@ -1,6 +1,6 @@
 /*
  * Catroid: An on-device visual programming system for Android devices
- * Copyright (C) 2010-2018 The Catrobat Team
+ * Copyright (C) 2010-2022 The Catrobat Team
  * (<http://developer.catrobat.org/credits>)
  *
  * This program is free software: you can redistribute it and/or modify
@@ -63,7 +63,7 @@ public class PenActor extends Actor {
 		buffer.begin();
 		for (Sprite sprite : StageActivity.stageListener.getSpritesFromStage()) {
 			PenConfiguration pen = sprite.penConfiguration;
-			pen.drawLinesForSprite(screenRatio);
+			pen.drawLinesForSprite(screenRatio, getStage().getViewport().getCamera());
 		}
 		buffer.end();
 

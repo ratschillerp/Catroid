@@ -1,6 +1,6 @@
 /*
  * Catroid: An on-device visual programming system for Android devices
- * Copyright (C) 2010-2020 The Catrobat Team
+ * Copyright (C) 2010-2022 The Catrobat Team
  * (<http://developer.catrobat.org/credits>)
  *
  * This program is free software: you can redistribute it and/or modify
@@ -36,6 +36,7 @@ import org.catrobat.catroid.utils.LoopUtil;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 public class ForItemInUserListBrick extends UserDataBrick implements CompositeBrick {
 
@@ -142,7 +143,7 @@ public class ForItemInUserListBrick extends UserDataBrick implements CompositeBr
 	public void addActionToSequence(Sprite sprite, ScriptSequenceAction sequence) {
 		UserVariable userVariable = getUserVariableWithBrickData(BrickData.FOR_ITEM_IN_USERLIST_VARIABLE);
 		UserList userList = getUserListWithBrickData(BrickData.FOR_ITEM_IN_USERLIST_LIST);
-		boolean isLoopDelay = LoopUtil.checkLoopBrickForLoopDelay(this);
+		boolean isLoopDelay = LoopUtil.checkLoopBrickForLoopDelay(this, sequence.getScript());
 
 		if (userVariable == null || userVariable.getName() == null) {
 			userVariable = new UserVariable("NoVariableSet",
@@ -208,6 +209,11 @@ public class ForItemInUserListBrick extends UserDataBrick implements CompositeBr
 
 		@Override
 		public void addActionToSequence(Sprite sprite, ScriptSequenceAction sequence) {
+		}
+
+		@Override
+		public UUID getBrickID() {
+			return parent.getBrickID();
 		}
 	}
 }

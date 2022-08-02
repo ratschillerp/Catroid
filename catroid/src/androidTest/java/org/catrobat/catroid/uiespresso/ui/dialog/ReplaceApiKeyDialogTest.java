@@ -1,6 +1,6 @@
 /*
  * Catroid: An on-device visual programming system for Android devices
- * Copyright (C) 2010-2021 The Catrobat Team
+ * Copyright (C) 2010-2022 The Catrobat Team
  * (<http://developer.catrobat.org/credits>)
  *
  * This program is free software: you can redistribute it and/or modify
@@ -40,7 +40,7 @@ import org.catrobat.catroid.content.Script;
 import org.catrobat.catroid.content.Sprite;
 import org.catrobat.catroid.content.StartScript;
 import org.catrobat.catroid.content.bricks.BackgroundRequestBrick;
-import org.catrobat.catroid.uiespresso.ui.activity.ProjectUploadRatingDialogTest;
+import org.catrobat.catroid.uiespresso.ui.activity.ProjectUploadDialogTest;
 import org.catrobat.catroid.uiespresso.util.rules.BaseActivityTestRule;
 import org.junit.After;
 import org.junit.Before;
@@ -68,8 +68,8 @@ public class ReplaceApiKeyDialogTest {
 	private static final String TAG = ReplaceApiKeyDialogTest.class.getSimpleName();
 
 	@Rule
-	public BaseActivityTestRule<ProjectUploadRatingDialogTest.ProjectUploadTestActivity> activityTestRule =
-			new BaseActivityTestRule<>(ProjectUploadRatingDialogTest.ProjectUploadTestActivity.class, false, false);
+	public BaseActivityTestRule<ProjectUploadDialogTest.ProjectUploadTestActivity> activityTestRule =
+			new BaseActivityTestRule<>(ProjectUploadDialogTest.ProjectUploadTestActivity.class, false, false);
 
 	private int bufferedPrivacyPolicyPreferenceSetting;
 
@@ -215,4 +215,3 @@ public class ReplaceApiKeyDialogTest {
 		assertTrue(reloadedCode.contains(linkapikey));
 	}
 }
-

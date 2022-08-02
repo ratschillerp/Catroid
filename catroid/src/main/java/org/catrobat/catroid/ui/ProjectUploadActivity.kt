@@ -1,6 +1,6 @@
 /*
  * Catroid: An on-device visual programming system for Android devices
- * Copyright (C) 2010-2021 The Catrobat Team
+ * Copyright (C) 2010-2022 The Catrobat Team
  * (<http://developer.catrobat.org/credits>)
  *
  * This program is free software: you can redistribute it and/or modify
@@ -51,8 +51,8 @@ import org.catrobat.catroid.databinding.DialogReplaceApiKeyBinding
 import org.catrobat.catroid.databinding.DialogUploadUnchangedProjectBinding
 import org.catrobat.catroid.exceptions.ProjectException
 import org.catrobat.catroid.io.ProjectAndSceneScreenshotLoader
-import org.catrobat.catroid.io.asynctask.ProjectLoadTask
-import org.catrobat.catroid.io.asynctask.ProjectLoadTask.ProjectLoadListener
+import org.catrobat.catroid.io.asynctask.ProjectLoader.ProjectLoadListener
+import org.catrobat.catroid.io.asynctask.loadProject
 import org.catrobat.catroid.io.asynctask.renameProject
 import org.catrobat.catroid.transfers.CheckTokenTask
 import org.catrobat.catroid.transfers.CheckTokenTask.TokenCheckListener
@@ -186,7 +186,7 @@ open class ProjectUploadActivity : BaseActivity(),
         binding.inputProjectName.editText?.addTextChangedListener(nameInputTextWatcher)
         originalProjectName = project.name
 
-        checkCodeforApiKey()
+        checkCodeForApiKey()
         setShowProgressBar(false)
         setNextButtonEnabled(true)
     }
@@ -276,15 +276,6 @@ open class ProjectUploadActivity : BaseActivity(),
                 return
             }
 
-            if (Utils.isDefaultProject(project, this)) {
-                binding.inputProjectName.error = getString(R.string.error_upload_default_project)
-                binding.inputProjectName.editText?.removeTextChangedListener(nameInputTextWatcher)
-                binding.inputProjectName.isEnabled = false
-                binding.inputProjectDescription.isEnabled = false
-                setShowProgressBar(false)
-                return
-            }
-
             setScreen(notesAndCreditsScreen)
             notesAndCreditsScreen = true
         } else {
@@ -294,7 +285,7 @@ open class ProjectUploadActivity : BaseActivity(),
         }
     }
 
-    private fun checkCodeforApiKey() {
+    private fun checkCodeForApiKey() {
         xmlFile = File(project.directory, Constants.CODE_XML_FILE_NAME)
 
         try {
@@ -304,14 +295,12 @@ open class ProjectUploadActivity : BaseActivity(),
             Log.e(TAG, Log.getStackTraceString(exception))
         }
 
-        checkNotNull(
-            xml.findAnyOf(
-                listOf(
-                    WEB_REQUEST_BRICK, BACKGROUND_REQUEST_BRICK,
-                    LOOK_REQUEST_BRICK, OPEN_URL_BRICK
-                )
+        xml.findAnyOf(
+            listOf(
+                WEB_REQUEST_BRICK, BACKGROUND_REQUEST_BRICK,
+                LOOK_REQUEST_BRICK, OPEN_URL_BRICK
             )
-        ).let {
+        )?.let {
             checkApiPattern()
         }
     }
@@ -463,7 +452,7 @@ open class ProjectUploadActivity : BaseActivity(),
                     Log.e(TAG, "Creating renamed directory failed!")
                     return name
                 }
-                ProjectLoadTask.task(renamedDirectory, applicationContext)
+                loadProject(renamedDirectory, applicationContext)
                 project = projectManager.currentProject
             }
             return name
@@ -654,7 +643,7 @@ open class ProjectUploadActivity : BaseActivity(),
                 return getString(R.string.name_consists_of_spaces_only)
             }
             if (name == getString(R.string.default_project_name)) {
-                return getString(R.string.error_upload_project_with_default_name)
+                return getString(R.string.error_upload_project_with_default_name, name)
             }
             return if (name != project.name &&
                 FileMetaDataExtractor.getProjectNames(FlavoredConstants.DEFAULT_ROOT_DIRECTORY)

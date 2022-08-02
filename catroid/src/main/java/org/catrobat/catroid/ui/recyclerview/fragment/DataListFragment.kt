@@ -1,6 +1,6 @@
 /*
  * Catroid: An on-device visual programming system for Android devices
- * Copyright (C) 2010-2021 The Catrobat Team
+ * Copyright (C) 2010-2022 The Catrobat Team
  * (<http://developer.catrobat.org/credits>)
  *
  * This program is free software: you can redistribute it and/or modify
@@ -23,38 +23,46 @@
 
 package org.catrobat.catroid.ui.recyclerview.fragment
 
+import android.annotation.SuppressLint
 import android.content.DialogInterface
 import android.os.Bundle
+import android.preference.PreferenceManager
 import android.view.ActionMode
 import android.view.LayoutInflater
 import android.view.Menu
+import android.view.MenuInflater
 import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
-import android.widget.PopupMenu
 import android.widget.TextView
 import androidx.annotation.IntDef
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.view.menu.MenuBuilder
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.RecyclerView.AdapterDataObserver
 import org.catrobat.catroid.ProjectManager
 import org.catrobat.catroid.R
+import org.catrobat.catroid.common.SharedPreferenceKeys.INDEXING_VARIABLE_PREFERENCE_KEY
+import org.catrobat.catroid.common.SharedPreferenceKeys.SORT_VARIABLE_PREFERENCE_KEY
 import org.catrobat.catroid.content.bricks.ScriptBrick
 import org.catrobat.catroid.content.bricks.UserDefinedReceiverBrick
 import org.catrobat.catroid.formulaeditor.UserData
+import org.catrobat.catroid.formulaeditor.UserList
 import org.catrobat.catroid.formulaeditor.UserVariable
 import org.catrobat.catroid.ui.BottomBar
+import org.catrobat.catroid.ui.UiUtils
+import org.catrobat.catroid.ui.fragment.FormulaEditorFragment
 import org.catrobat.catroid.ui.recyclerview.adapter.DataListAdapter
 import org.catrobat.catroid.ui.recyclerview.adapter.RVAdapter
 import org.catrobat.catroid.ui.recyclerview.dialog.TextInputDialog
 import org.catrobat.catroid.ui.recyclerview.dialog.textwatcher.DuplicateInputTextWatcher
-import org.catrobat.catroid.ui.recyclerview.viewholder.CheckableVH
+import org.catrobat.catroid.ui.recyclerview.viewholder.CheckableViewHolder
 import org.catrobat.catroid.userbrick.UserDefinedBrickInput
 import org.catrobat.catroid.utils.ToastUtil
 import org.catrobat.catroid.utils.UserDataUtil.renameUserData
-import java.util.ArrayList
+import java.util.Collections
 
 class DataListFragment : Fragment(),
     ActionMode.Callback, RVAdapter.SelectionListener,
@@ -69,6 +77,8 @@ class DataListFragment : Fragment(),
     private var formulaEditorDataInterface: FormulaEditorDataInterface? = null
     private var parentScriptBrick: ScriptBrick? = null
     private var emptyView: TextView? = null
+    private var sortData = false
+    private var indexVariable = false
 
     @ActionModeType
     var actionModeType = NONE
@@ -76,30 +86,25 @@ class DataListFragment : Fragment(),
         this.formulaEditorDataInterface = formulaEditorDataInterface
     }
 
-    override fun onCreateActionMode(
-        mode: ActionMode,
-        menu: Menu
-    ): Boolean {
+    @SuppressLint("RestrictedApi")
+    override fun onCreateActionMode(mode: ActionMode, menu: Menu): Boolean {
         when (actionModeType) {
             DELETE -> mode.title = getString(R.string.am_delete)
             NONE -> return false
         }
         val inflater = mode.menuInflater
         inflater.inflate(R.menu.context_menu, menu)
+        if (menu is MenuBuilder) {
+            menu.setOptionalIconsVisible(true)
+        }
         adapter?.showCheckBoxes(true)
         adapter?.updateDataSet()
         return true
     }
 
-    override fun onPrepareActionMode(
-        mode: ActionMode,
-        menu: Menu
-    ): Boolean = false
+    override fun onPrepareActionMode(mode: ActionMode, menu: Menu): Boolean = false
 
-    override fun onActionItemClicked(
-        mode: ActionMode,
-        item: MenuItem
-    ): Boolean {
+    override fun onActionItemClicked(mode: ActionMode, item: MenuItem): Boolean {
         when (item.itemId) {
             R.id.confirm -> handleContextualAction()
             else -> return false
@@ -141,15 +146,11 @@ class DataListFragment : Fragment(),
         actionMode = null
         adapter?.showCheckBoxes(false)
         adapter?.allowMultiSelection = true
+        BottomBar.showAddButton(activity)
     }
 
-    override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View? {
-        val parent =
-            inflater.inflate(R.layout.fragment_list_view, container, false)
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
+        val parent = inflater.inflate(R.layout.fragment_list_view, container, false)
         recyclerView = parent.findViewById(R.id.recycler_view)
         emptyView = parent.findViewById(R.id.empty_view)
         setHasOptionsMenu(true)
@@ -163,11 +164,9 @@ class DataListFragment : Fragment(),
 
     override fun onResume() {
         super.onResume()
+        initializeAdapter()
         (activity as AppCompatActivity?)?.supportActionBar?.setTitle(R.string.formula_editor_data)
-        adapter?.apply {
-            notifyDataSetChanged()
-            registerAdapterDataObserver(observer)
-        }
+        adapter?.notifyDataSetChanged()
         setShowEmptyView(shouldShowEmptyView())
 
         BottomBar.showBottomBar(activity)
@@ -176,7 +175,9 @@ class DataListFragment : Fragment(),
 
     override fun onPause() {
         super.onPause()
-        adapter?.unregisterAdapterDataObserver(observer)
+        if (adapter?.hasObservers() == true) {
+            adapter?.unregisterAdapterDataObserver(observer)
+        }
     }
 
     override fun onStop() {
@@ -186,16 +187,43 @@ class DataListFragment : Fragment(),
     }
 
     private fun initializeAdapter() {
-        arguments?.getSerializable(PARENT_SCRIPT_BRICK_BUNDLE_ARGUMENT).let { parentScriptBrick = it as ScriptBrick? }
+        arguments?.getSerializable(PARENT_SCRIPT_BRICK_BUNDLE_ARGUMENT)
+            .let { parentScriptBrick = it as ScriptBrick? }
 
-        val currentProject =
-            ProjectManager.getInstance().currentProject
-        val currentSprite =
-            ProjectManager.getInstance().currentSprite
+        val currentProject = ProjectManager.getInstance().currentProject
+        val currentSprite = ProjectManager.getInstance().currentSprite
 
         var userDefinedBrickInputs = listOf<UserDefinedBrickInput>()
         if (parentScriptBrick is UserDefinedReceiverBrick) {
-            userDefinedBrickInputs = (parentScriptBrick as UserDefinedReceiverBrick).userDefinedBrick.userDefinedBrickInputs
+            userDefinedBrickInputs =
+                (parentScriptBrick as UserDefinedReceiverBrick).userDefinedBrick.userDefinedBrickInputs
+        }
+        val globalVars = currentProject.userVariables
+        val localVars = currentSprite.userVariables
+        val multiplayerVars = currentProject.multiplayerVariables
+        val globalLists = currentProject.userLists
+        val localLists = currentSprite.userLists
+
+        indexAndSort()
+        adapter = DataListAdapter(
+            userDefinedBrickInputs, multiplayerVars, globalVars,
+            localVars, globalLists, localLists
+        )
+        if (adapter?.hasObservers() == false) {
+            adapter?.registerAdapterDataObserver(observer)
+        }
+        emptyView?.setText(R.string.fragment_data_text_description)
+        onAdapterReady()
+    }
+
+    fun indexAndSort() {
+        val currentProject = ProjectManager.getInstance().currentProject
+        val currentSprite = ProjectManager.getInstance().currentSprite
+
+        var userDefinedBrickInputs = listOf<UserDefinedBrickInput>()
+        if (parentScriptBrick is UserDefinedReceiverBrick) {
+            userDefinedBrickInputs =
+                (parentScriptBrick as UserDefinedReceiverBrick).userDefinedBrick.userDefinedBrickInputs
         }
 
         val globalVars = currentProject.userVariables
@@ -203,18 +231,132 @@ class DataListFragment : Fragment(),
         val multiplayerVars = currentProject.multiplayerVariables
         val globalLists = currentProject.userLists
         val localLists = currentSprite.userLists
-        adapter = DataListAdapter(
-            userDefinedBrickInputs, multiplayerVars, globalVars, localVars, globalLists,
-            localLists
-        )
-        emptyView?.setText(R.string.fragment_data_text_description)
-        onAdapterReady()
+
+        indexVariable = PreferenceManager.getDefaultSharedPreferences(context)
+            .getBoolean(INDEXING_VARIABLE_PREFERENCE_KEY, false)
+
+        if (!indexVariable) {
+            initialIndexing(userDefinedBrickInputs, globalVars, localVars, multiplayerVars,
+                            globalLists, localLists)
+            indexVariable = true
+            PreferenceManager.getDefaultSharedPreferences(activity)
+                .edit()
+                .putBoolean(INDEXING_VARIABLE_PREFERENCE_KEY, indexVariable)
+                .apply()
+        }
+
+        sortVariableAndList(userDefinedBrickInputs, globalVars, localVars, multiplayerVars,
+                            globalLists, localLists)
+        adapter?.notifyDataSetChanged()
+    }
+
+    @Suppress("LongParameterList")
+    private fun sortVariableAndList(
+        userDefinedBrickInputs: List<UserDefinedBrickInput>,
+        globalVars: MutableList<UserVariable>,
+        localVars: MutableList<UserVariable>,
+        multiplayerVars: MutableList<UserVariable>,
+        globalLists: MutableList<UserList>,
+        localLists: MutableList<UserList>
+    ) {
+        sortData = PreferenceManager.getDefaultSharedPreferences(context)
+            .getBoolean(SORT_VARIABLE_PREFERENCE_KEY, false)
+
+        if (sortData) {
+            Collections.sort(userDefinedBrickInputs) { item1:
+            UserDefinedBrickInput, item2: UserDefinedBrickInput ->
+                item1.name.compareTo(item2.name)
+            }
+        } else {
+            Collections.sort(userDefinedBrickInputs) { item1:
+            UserDefinedBrickInput, item2: UserDefinedBrickInput ->
+                item1.initialIndex.compareTo(item2.initialIndex)
+            }
+        }
+
+        sortUserVariable(multiplayerVars, sortData)
+        sortUserVariable(globalVars, sortData)
+        sortUserVariable(localVars, sortData)
+        sortUserList(globalLists, sortData)
+        sortUserList(localLists, sortData)
+    }
+
+    fun sortUserVariable(data: MutableList<UserVariable>, sorted: Boolean) {
+        if (sorted) {
+            data.sortWith(Comparator { item1: UserVariable, item2: UserVariable ->
+                item1.name.compareTo(item2.name)
+            })
+        } else {
+            data.sortWith(Comparator { item1: UserVariable, item2: UserVariable ->
+                item1.initialIndex.compareTo(item2.initialIndex)
+            })
+        }
+    }
+
+    fun sortUserList(data: MutableList<UserList>, sorted: Boolean) {
+        if (sorted) {
+            data.sortWith(Comparator { item1: UserList, item2: UserList ->
+                item1.name.compareTo(item2.name)
+            })
+        } else {
+            data.sortWith(Comparator { item1: UserList, item2: UserList ->
+                item1.initialIndex.compareTo(item2.initialIndex)
+            })
+        }
+    }
+
+    @Suppress("LongParameterList")
+    private fun initialIndexing(
+        userDefinedBrickInputs: List<UserDefinedBrickInput>,
+        globalVars: MutableList<UserVariable>,
+        localVars: MutableList<UserVariable>,
+        multiplayerVars: MutableList<UserVariable>,
+        globalLists: MutableList<UserList>,
+        localLists: MutableList<UserList>
+    ) {
+        if (userDefinedBrickInputs.isNotEmpty()) {
+            for ((counter, userDefinedBrickInput) in userDefinedBrickInputs.withIndex()) {
+                if (userDefinedBrickInput.initialIndex == -1) {
+                    userDefinedBrickInput.initialIndex = counter
+                }
+            }
+        }
+        setUserVariableIndex(globalVars)
+        setUserVariableIndex(localVars)
+        setUserVariableIndex(multiplayerVars)
+        setUserListIndex(globalLists)
+        setUserListIndex(localLists)
+    }
+
+    private fun setUserVariableIndex(data: MutableList<UserVariable>) {
+        if (data.size > 0) {
+            for ((counter, localList) in data.withIndex()) {
+                if (localList.initialIndex == -1) {
+                    localList.initialIndex = counter
+                }
+            }
+        }
+    }
+
+    private fun setUserListIndex(data: MutableList<UserList>) {
+        if (data.size > 0) {
+            for ((counter, localList) in data.withIndex()) {
+                if (localList.initialIndex == -1) {
+                    localList.initialIndex = counter
+                }
+            }
+        }
     }
 
     private fun onAdapterReady() {
         recyclerView?.adapter = adapter
         adapter?.setSelectionListener(this)
         adapter?.setOnItemClickListener(this)
+    }
+
+    override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
+        super.onCreateOptionsMenu(menu, inflater)
+        inflater.inflate(R.menu.menu_sort, menu)
     }
 
     fun notifyDataSetChanged() {
@@ -227,17 +369,33 @@ class DataListFragment : Fragment(),
             menu.getItem(index).isVisible = false
         }
         menu.findItem(R.id.delete).isVisible = true
+        if (context != null) {
+            sortData = PreferenceManager.getDefaultSharedPreferences(context)
+                .getBoolean(SORT_VARIABLE_PREFERENCE_KEY, false)
+            menu.findItem(R.id.sort)
+                .setTitle(if (sortData) R.string.undo_sort else R.string.sort)
+                .isVisible = true
+        }
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
             R.id.delete -> startActionMode(DELETE)
+            R.id.sort -> {
+                sortData = !sortData
+                PreferenceManager.getDefaultSharedPreferences(activity)
+                    .edit()
+                    .putBoolean(SORT_VARIABLE_PREFERENCE_KEY, sortData)
+                    .apply()
+                indexAndSort()
+            }
             else -> return super.onOptionsItemSelected(item)
         }
         return true
     }
 
     private fun startActionMode(@ActionModeType type: Int) {
+        BottomBar.hideAddButton(activity)
         if (adapter?.items?.isEmpty() != false) {
             ToastUtil.showError(requireActivity(), R.string.am_empty_list)
         } else {
@@ -257,9 +415,7 @@ class DataListFragment : Fragment(),
         AlertDialog.Builder(requireContext())
             .setTitle(R.string.deletion_alert_title)
             .setMessage(R.string.deletion_alert_text)
-            .setPositiveButton(
-                R.string.delete
-            ) { _: DialogInterface?, _: Int ->
+            .setPositiveButton(R.string.delete) { _: DialogInterface?, _: Int ->
                 deleteItems(selectedItems)
             }
             .setNegativeButton(R.string.cancel, null)
@@ -273,13 +429,8 @@ class DataListFragment : Fragment(),
             adapter?.remove(item)
         }
         ProjectManager.getInstance().currentProject.deselectElements(selectedItems)
-        ToastUtil.showSuccess(
-            activity, resources.getQuantityString(
-                R.plurals.deleted_Items,
-                selectedItems.size,
-                selectedItems.size
-            )
-        )
+        ToastUtil.showSuccess(activity, resources.getQuantityString(R.plurals.deleted_Items,
+                                                                    selectedItems.size, selectedItems.size))
     }
 
     private fun showRenameDialog(selectedItems: List<UserData<*>>) {
@@ -289,32 +440,20 @@ class DataListFragment : Fragment(),
 
         builder.setHint(getString(R.string.data_label))
             .setText(item.name)
-            .setTextWatcher(
-                DuplicateInputTextWatcher(
-                    items
-                )
-            )
-            .setPositiveButton(
-                getString(R.string.ok)
-            ) { _: DialogInterface?, textInput: String? ->
-                renameItem(
-                    item,
-                    textInput
-                )
+            .setTextWatcher(DuplicateInputTextWatcher(items))
+            .setPositiveButton(getString(R.string.ok)) { _: DialogInterface?, textInput: String? ->
+                renameItem(item, textInput)
             }
         builder.setTitle(R.string.rename_data_dialog)
             .setNegativeButton(R.string.cancel, null)
             .show()
     }
 
-    private fun renameItem(
-        item: UserData<*>,
-        name: String?
-    ) {
+    private fun renameItem(item: UserData<*>, name: String?) {
         val previousName = item.name
         updateUserDataReferences(previousName, name, item)
         renameUserData(item, name ?: "")
-        adapter?.updateDataSet()
+        indexAndSort()
         finishActionMode()
         if (item is UserVariable) {
             formulaEditorDataInterface?.onVariableRenamed(previousName, name)
@@ -329,23 +468,15 @@ class DataListFragment : Fragment(),
 
         builder.setHint(getString(R.string.data_value))
             .setText(item.value.toString())
-            .setPositiveButton(
-                getString(R.string.save)
-            ) { _: DialogInterface?, textInput: String? ->
-                editItem(
-                    item,
-                    textInput
-                )
+            .setPositiveButton(getString(R.string.save)) { _: DialogInterface?, textInput: String? ->
+                editItem(item, textInput)
             }
         builder.setTitle("Edit " + item.name)
             .setNegativeButton(R.string.cancel, null)
             .show()
     }
 
-    private fun editItem(
-        item: UserData<*>,
-        value: String?
-    ) {
+    private fun editItem(item: UserData<*>, value: String?) {
         updateUserVariableValue(value, item)
         adapter?.updateDataSet()
         finishActionMode()
@@ -359,24 +490,19 @@ class DataListFragment : Fragment(),
 
     override fun onItemClick(item: UserData<*>) {
         if (actionModeType == NONE) {
-            formulaEditorDataInterface?.onDataItemSelected(item)
+            val formulaEditorFragment =
+                fragmentManager?.findFragmentByTag(FormulaEditorFragment.FORMULA_EDITOR_FRAGMENT_TAG) as FormulaEditorFragment?
+            formulaEditorFragment?.setChosenUserDataItem(item)
             fragmentManager?.popBackStack()
         }
     }
 
-    override fun onItemLongClick(
-        item: UserData<*>,
-        holder: CheckableVH
-    ) {
+    override fun onItemLongClick(item: UserData<*>, holder: CheckableViewHolder) {
         onItemClick(item)
     }
 
     interface FormulaEditorDataInterface {
-        fun onDataItemSelected(item: UserData<*>?)
-        fun onVariableRenamed(
-            previousName: String?,
-            newName: String?
-        )
+        fun onVariableRenamed(previousName: String?, newName: String?)
 
         fun onListRenamed(previousName: String?, newName: String?)
     }
@@ -390,8 +516,7 @@ class DataListFragment : Fragment(),
 
         @JvmStatic
         fun updateUserDataReferences(oldName: String?, newName: String?, item: UserData<*>?) {
-            ProjectManager.getInstance().currentProject
-                .updateUserDataReferences(oldName, newName, item)
+            ProjectManager.getInstance().currentProject.updateUserDataReferences(oldName, newName, item)
         }
 
         @JvmStatic
@@ -403,47 +528,35 @@ class DataListFragment : Fragment(),
     override fun onSettingsClick(item: UserData<*>, view: View?) {
         if (item is UserDefinedBrickInput) {
             return
-        } else if (item is UserVariable) {
-            val elementList =
-                arrayOf<CharSequence>(
-                    getString(R.string.delete), getString(R.string.rename),
-                    getString(R.string.edit)
-                )
-
-            val popupMenu = PopupMenu(context, view)
-            for (element: CharSequence in elementList) popupMenu.menu.add(element)
+        }
+        val itemList: MutableList<UserData<*>> = ArrayList()
+        itemList.add(item)
+        val hiddenOptionsMenu = mutableListOf<Int>(
+            R.id.copy, R.id.show_details, R.id.from_library, R.id.from_local, R.id.new_group,
+            R.id.new_scene, R.id.cast_button, R.id.backpack, R.id.project_options
+        )
+        if (item is UserVariable) {
+            val popupMenu = UiUtils.createSettingsPopUpMenu(view, requireContext(),
+                                                            R.menu.menu_project_activity,
+                                                            hiddenOptionsMenu.toIntArray())
             popupMenu.setOnMenuItemClickListener { menuItem ->
-                when (menuItem.title) {
-                    getString(R.string.rename) -> showRenameDialog(ArrayList(
-                        listOf(item)
-                    ))
-                    getString(R.string.delete) -> showDeleteAlert(ArrayList(
-                        listOf(item)
-                    ))
-                    getString(R.string.edit) -> showEditDialog(
-                        ArrayList(
-                            listOf(item)
-                        )
-                    )
+                when (menuItem.itemId) {
+                    R.id.rename -> showRenameDialog(ArrayList(listOf(item)))
+                    R.id.delete -> showDeleteAlert(ArrayList(listOf(item)))
+                    R.id.edit -> showEditDialog(ArrayList(listOf(item)))
                 }
                 true
             }
             popupMenu.show()
         } else {
-            val elementList =
-                arrayOf<CharSequence>(
-                    getString(R.string.delete), getString(R.string.rename)
-                )
-            val popupMenu = PopupMenu(context, view)
-            for (element: CharSequence in elementList) popupMenu.menu.add(element)
+            hiddenOptionsMenu.add(R.id.edit)
+            val popupMenu = UiUtils.createSettingsPopUpMenu(view, requireContext(),
+                                                            R.menu.menu_project_activity,
+                                                            hiddenOptionsMenu.toIntArray())
             popupMenu.setOnMenuItemClickListener { menuItem ->
-                when (menuItem.title) {
-                    getString(R.string.rename) -> showRenameDialog(
-                        listOf(item)
-                    )
-                    getString(R.string.delete) -> showDeleteAlert(ArrayList(
-                        listOf(item)
-                    ))
+                when (menuItem.itemId) {
+                    R.id.rename -> showRenameDialog(ArrayList(listOf(item)))
+                    R.id.delete -> showDeleteAlert(ArrayList(listOf(item)))
                 }
                 true
             }

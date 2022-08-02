@@ -1,6 +1,6 @@
 /*
  * Catroid: An on-device visual programming system for Android devices
- * Copyright (C) 2010-2021 The Catrobat Team
+ * Copyright (C) 2010-2022 The Catrobat Team
  * (<http://developer.catrobat.org/credits>)
  *
  * This program is free software: you can redistribute it and/or modify
@@ -48,7 +48,6 @@ import org.catrobat.catroid.formulaeditor.UserDataWrapper
 import org.catrobat.catroid.ui.controller.BackpackListManager
 import org.koin.java.KoinJavaComponent
 import java.io.IOException
-import java.util.ArrayList
 
 class ScriptController {
     private val lookController = LookController()
@@ -114,20 +113,38 @@ class ScriptController {
     fun pack(groupName: String?, bricksToPack: List<Brick>?) {
         val scriptsToPack: MutableList<Script> = ArrayList()
         val userDefinedBrickListToPack: MutableList<UserDefinedBrick> = ArrayList()
-        bricksToPack?.forEach() {
-            if (it is ScriptBrick) {
-                if (it is UserDefinedReceiverBrick) {
-                    val userDefinedBrick = it.userDefinedBrick
+        bricksToPack?.forEach() { brick ->
+            if (brick is ScriptBrick) {
+                if (brick is UserDefinedReceiverBrick) {
+                    val userDefinedBrick = brick.userDefinedBrick
                     userDefinedBrickListToPack.add(userDefinedBrick.clone() as UserDefinedBrick)
                 }
-                val scriptToPack = it.getScript()
+                val scriptToPack = brick.getScript()
                 scriptsToPack.add(scriptToPack.clone())
             }
+            if (brick is UserDefinedBrick) {
+                val userDefinedScript = projectManager.currentSprite.getUserDefinedScript(brick.userDefinedBrickID)
+
+                if (!checkIfUserDefinedBrickDefinitionIsInBricksToPack(bricksToPack, brick)) {
+                    scriptsToPack.add(userDefinedScript)
+                    userDefinedBrickListToPack.add(brick.clone() as UserDefinedBrick)
+                }
+            }
         }
+
         BackpackListManager.getInstance()
             .addUserDefinedBrickToBackPack(groupName, userDefinedBrickListToPack)
         BackpackListManager.getInstance().addScriptToBackPack(groupName, scriptsToPack)
         BackpackListManager.getInstance().saveBackpack()
+    }
+
+    private fun checkIfUserDefinedBrickDefinitionIsInBricksToPack(bricksToPack: List<Brick>?, userDefinedBrick: UserDefinedBrick): Boolean {
+        bricksToPack?.forEach { brick ->
+            if (brick is UserDefinedReceiverBrick && brick.userDefinedBrick.userDefinedBrickID.equals(userDefinedBrick.userDefinedBrickID)) {
+                return true
+            }
+        }
+        return false
     }
 
     @Throws(IOException::class, CloneNotSupportedException::class)
@@ -231,7 +248,6 @@ class ScriptController {
                         destinationScene,
                         destinationSprite
                     )
-
                 brick is UserVariableBrickInterface && brick.userVariable != null ->
                     updateUserVariable(brick, destinationProject, destinationSprite)
 

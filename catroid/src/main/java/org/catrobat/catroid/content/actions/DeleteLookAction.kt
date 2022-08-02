@@ -1,6 +1,6 @@
 /*
  * Catroid: An on-device visual programming system for Android devices
- * Copyright (C) 2010-2021 The Catrobat Team
+ * Copyright (C) 2010-2022 The Catrobat Team
  * (<http://developer.catrobat.org/credits>)
  *
  * This program is free software: you can redistribute it and/or modify
@@ -60,6 +60,7 @@ class DeleteLookAction : SingleSpriteEventAction() {
     private fun setNewLookData(indexOfLookData: Int) {
         sprite?.apply {
             if (lookList.isNullOrEmpty()) {
+                look.lookData = null
                 return
             }
             look?.lookData ?: return

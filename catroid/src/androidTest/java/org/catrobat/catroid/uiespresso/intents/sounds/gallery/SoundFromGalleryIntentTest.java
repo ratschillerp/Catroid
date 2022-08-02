@@ -1,6 +1,6 @@
 /*
  * Catroid: An on-device visual programming system for Android devices
- * Copyright (C) 2010-2021 The Catrobat Team
+ * Copyright (C) 2010-2022 The Catrobat Team
  * (<http://developer.catrobat.org/credits>)
  *
  * This program is free software: you can redistribute it and/or modify
@@ -28,11 +28,11 @@ import android.app.Activity;
 import android.app.Instrumentation;
 import android.content.Intent;
 import android.net.Uri;
-import android.os.Environment;
 import android.util.Log;
 
 import org.catrobat.catroid.ProjectManager;
 import org.catrobat.catroid.R;
+import org.catrobat.catroid.common.Constants;
 import org.catrobat.catroid.content.Project;
 import org.catrobat.catroid.content.Sprite;
 import org.catrobat.catroid.io.ResourceImporter;
@@ -85,7 +85,7 @@ public class SoundFromGalleryIntentTest {
 	private final String soundFileName = "longsound.mp3";
 	private final String projectName = getClass().getSimpleName();
 	private final File tmpPath = new File(
-			Environment.getExternalStorageDirectory().getAbsolutePath(), "Pocket Code Test Temp");
+			Constants.CACHE_DIRECTORY.getAbsolutePath(), "Pocket Code Test Temp");
 
 	@Rule
 	public FragmentActivityTestRule<SpriteActivity> baseActivityTestRule = new
@@ -154,7 +154,7 @@ public class SoundFromGalleryIntentTest {
 		intended(expectedChooserIntent);
 
 		onRecyclerView().atPosition(0).onChildView(R.id.title_view)
-				.check(matches(withText(soundFileName.replace(".mp3", " (1)"))));
+				.check(matches(withText(soundFileName.replace(".mp3", ""))));
 	}
 
 	private void createProject(String projectName) {

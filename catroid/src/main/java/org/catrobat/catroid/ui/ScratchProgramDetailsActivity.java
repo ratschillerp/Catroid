@@ -1,6 +1,6 @@
 /*
  * Catroid: An on-device visual programming system for Android devices
- * Copyright (C) 2010-2018 The Catrobat Team
+ * Copyright (C) 2010-2022 The Catrobat Team
  * (<http://developer.catrobat.org/credits>)
  *
  * This program is free software: you can redistribute it and/or modify
@@ -50,7 +50,7 @@ import org.catrobat.catroid.scratchconverter.protocol.Job;
 import org.catrobat.catroid.transfers.FetchScratchProgramDetailsTask;
 import org.catrobat.catroid.ui.recyclerview.adapter.RVAdapter;
 import org.catrobat.catroid.ui.recyclerview.adapter.ScratchProgramAdapter;
-import org.catrobat.catroid.ui.recyclerview.viewholder.CheckableVH;
+import org.catrobat.catroid.ui.recyclerview.viewholder.CheckableViewHolder;
 import org.catrobat.catroid.ui.scratchconverter.JobViewListener;
 import org.catrobat.catroid.utils.ToastUtil;
 import org.catrobat.catroid.utils.Utils;
@@ -143,7 +143,7 @@ public class ScratchProgramDetailsActivity extends BaseActivity implements
 		adapter = new ScratchProgramAdapter(new ArrayList<ScratchProgramData>());
 		adapter.setOnItemClickListener(this);
 		adapter.showRipples = false;
-		adapter.hideSettings = true;
+		adapter.showSettings = false;
 
 		recyclerView.setAdapter(adapter);
 
@@ -209,7 +209,7 @@ public class ScratchProgramDetailsActivity extends BaseActivity implements
 	}
 
 	@Override
-	public void onItemLongClick(ScratchProgramData item, CheckableVH h) {
+	public void onItemLongClick(ScratchProgramData item, CheckableViewHolder h) {
 	}
 
 	@Override

@@ -1,6 +1,6 @@
 /*
  * Catroid: An on-device visual programming system for Android devices
- * Copyright (C) 2010-2021 The Catrobat Team
+ * Copyright (C) 2010-2022 The Catrobat Team
  * (<http://developer.catrobat.org/credits>)
  *
  * This program is free software: you can redistribute it and/or modify
@@ -147,6 +147,7 @@ import org.catrobat.catroid.content.bricks.SetGravityBrick;
 import org.catrobat.catroid.content.bricks.SetListeningLanguageBrick;
 import org.catrobat.catroid.content.bricks.SetMassBrick;
 import org.catrobat.catroid.content.bricks.SetNfcTagBrick;
+import org.catrobat.catroid.content.bricks.SetParticleColorBrick;
 import org.catrobat.catroid.content.bricks.SetPenColorBrick;
 import org.catrobat.catroid.content.bricks.SetPenSizeBrick;
 import org.catrobat.catroid.content.bricks.SetPhysicsObjectTypeBrick;
@@ -518,6 +519,8 @@ public class RtlBrickTest {
 		checkIfBrickISRtl(FadeParticleEffectBrick.class, R.id.brick_fade_particle_effect_layout);
 
 		checkIfBrickISRtl(ParticleEffectAdditivityBrick.class, R.id.brick_particle_effect_additivity_layout);
+
+		checkIfBrickISRtl(SetParticleColorBrick.class, R.id.brick_set_particle_color_layout);
 	}
 
 	@Category({Cat.AppUi.class, Level.Smoke.class, Cat.RTLTests.class})

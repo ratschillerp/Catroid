@@ -1,6 +1,6 @@
 /*
  * Catroid: An on-device visual programming system for Android devices
- * Copyright (C) 2010-2021 The Catrobat Team
+ * Copyright (C) 2010-2022 The Catrobat Team
  * (<http://developer.catrobat.org/credits>)
  *
  * This program is free software: you can redistribute it and/or modify
@@ -25,7 +25,10 @@ package org.catrobat.catroid.test.content.bricks
 
 import com.badlogic.gdx.utils.GdxNativesLoader
 import org.catrobat.catroid.common.BrickValues
+import org.catrobat.catroid.content.Script
 import org.catrobat.catroid.content.Sprite
+import org.catrobat.catroid.content.StartScript
+import org.catrobat.catroid.content.UserDefinedScript
 import org.catrobat.catroid.content.bricks.Brick
 import org.catrobat.catroid.content.bricks.ChangeBrightnessByNBrick
 import org.catrobat.catroid.content.bricks.ChangeColorByNBrick
@@ -75,6 +78,7 @@ import org.powermock.modules.junit4.PowerMockRunnerDelegate
 internal class LoopDelayBricksTest(private val brick: Brick?) {
 
     private val REPEAT_TIMES = 3
+    private lateinit var script: Script
     private lateinit var repeatBrickInner: RepeatBrick
     private lateinit var repeatBrickOuter: RepeatBrick
     private lateinit var conditionBrick: IfThenLogicBeginBrick
@@ -129,21 +133,40 @@ internal class LoopDelayBricksTest(private val brick: Brick?) {
 
     @Test
     fun testLoopDelayOnly() {
+        script = StartScript()
         repeatBrickInner.addBrick(brick)
-        assert(LoopUtil.checkLoopBrickForLoopDelay(repeatBrickInner))
+        assert(LoopUtil.checkLoopBrickForLoopDelay(repeatBrickInner, script))
     }
 
     @Test
     fun testLoopDelayWithInnerLoop() {
+        script = StartScript()
         repeatBrickOuter.addBrick(repeatBrickInner)
         repeatBrickInner.addBrick(brick)
-        assert(LoopUtil.checkLoopBrickForLoopDelay(repeatBrickOuter))
+        assert(LoopUtil.checkLoopBrickForLoopDelay(repeatBrickOuter, script))
     }
 
     @Test
     fun testLoopDelayWithInnerCondition() {
+        script = StartScript()
         repeatBrickOuter.addBrick(conditionBrick)
         conditionBrick.addBrick(brick)
-        assert(LoopUtil.checkLoopBrickForLoopDelay(repeatBrickOuter))
+        assert(LoopUtil.checkLoopBrickForLoopDelay(repeatBrickOuter, script))
+    }
+
+    @Test
+    fun testLoopDelayInUserDefinedBrickWithoutScreenRefreshingOnly() {
+        script = UserDefinedScript()
+        (script as UserDefinedScript).screenRefresh = false
+        repeatBrickInner.addBrick(brick)
+        assert(!LoopUtil.checkLoopBrickForLoopDelay(repeatBrickInner, script))
+    }
+
+    @Test
+    fun testLoopDelayInUserDefinedBrickWithScreenRefreshingOnly() {
+        script = UserDefinedScript()
+        (script as UserDefinedScript).screenRefresh = true
+        repeatBrickInner.addBrick(brick)
+        assert(LoopUtil.checkLoopBrickForLoopDelay(repeatBrickInner, script))
     }
 }

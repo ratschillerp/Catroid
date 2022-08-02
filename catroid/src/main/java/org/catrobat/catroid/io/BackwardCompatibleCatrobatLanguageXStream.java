@@ -1,6 +1,6 @@
 /*
  * Catroid: An on-device visual programming system for Android devices
- * Copyright (C) 2010-2021 The Catrobat Team
+ * Copyright (C) 2010-2022 The Catrobat Team
  * (<http://developer.catrobat.org/credits>)
  *
  * This program is free software: you can redistribute it and/or modify
@@ -23,6 +23,7 @@
 package org.catrobat.catroid.io;
 
 import android.util.Log;
+import android.util.Pair;
 
 import com.thoughtworks.xstream.XStream;
 import com.thoughtworks.xstream.converters.ConversionException;
@@ -114,6 +115,7 @@ import org.catrobat.catroid.content.bricks.PlaceAtBrick;
 import org.catrobat.catroid.content.bricks.PlayDrumForBeatsBrick;
 import org.catrobat.catroid.content.bricks.PlayNoteForBeatsBrick;
 import org.catrobat.catroid.content.bricks.PlaySoundAndWaitBrick;
+import org.catrobat.catroid.content.bricks.PlaySoundAtBrick;
 import org.catrobat.catroid.content.bricks.PlaySoundBrick;
 import org.catrobat.catroid.content.bricks.PointInDirectionBrick;
 import org.catrobat.catroid.content.bricks.PointToBrick;
@@ -187,6 +189,7 @@ import org.w3c.dom.NodeList;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 
@@ -451,6 +454,9 @@ public class BackwardCompatibleCatrobatLanguageXStream extends XStream {
 
 		brickInfo = new BrickInfo(PlaySoundAndWaitBrick.class.getSimpleName());
 		brickInfoMap.put("playSoundAndWaitBrick", brickInfo);
+
+		brickInfo = new BrickInfo(PlaySoundAtBrick.class.getSimpleName());
+		brickInfoMap.put("playSoundAtBrick", brickInfo);
 
 		brickInfo = new BrickInfo(SetTempoBrick.class.getSimpleName());
 		brickInfoMap.put("setTempoBrick", brickInfo);
@@ -791,6 +797,7 @@ public class BackwardCompatibleCatrobatLanguageXStream extends XStream {
 			modifyScriptLists(originalDocument);
 			modifyBrickLists(originalDocument);
 			modifyVariables(originalDocument);
+			modifyCameraBricks(originalDocument);
 			checkReferences(originalDocument.getDocumentElement());
 
 			saveDocument(originalDocument, file);
@@ -818,6 +825,11 @@ public class BackwardCompatibleCatrobatLanguageXStream extends XStream {
 	private List<Node> getScriptsOfType(Document doc, String type) {
 		NodeList scripts = doc.getElementsByTagName("script");
 		return getElementsFilteredByAttribute(scripts, "type", type);
+	}
+
+	private List<Node> getBricksOfType(Document doc, String type) {
+		NodeList bricks = doc.getElementsByTagName("brick");
+		return getElementsFilteredByAttribute(bricks, "type", type);
 	}
 
 	private List<Node> getElementsFilteredByAttribute(NodeList unfiltered, String attributeName, String
@@ -871,6 +883,32 @@ public class BackwardCompatibleCatrobatLanguageXStream extends XStream {
 			originalDocument.renameNode(variableNode, variableNodeNamespaceURI, "data");
 		} else {
 			Log.e(TAG, "XML-Update: No variables to modify.");
+		}
+	}
+
+	private void modifyCameraBricks(Document originalDocument) {
+		List<Pair<String, String>> brickUpdateData = Arrays.asList(
+				new Pair<>("CameraBrick", "spinnerSelectionON"),
+				new Pair<>("ChooseCameraBrick", "spinnerSelectionFRONT"));
+
+		for (Pair<String, String> brick : brickUpdateData) {
+			String brickType = brick.first;
+			String newNodeName = brick.second;
+			for (Node node : getBricksOfType(originalDocument, brickType)) {
+				Node childNode = findNodeByName(node, "spinnerSelectionID");
+				if (childNode == null) {
+					continue;
+				}
+				String value = childNode.getTextContent();
+				if (value == null) {
+					continue;
+				}
+				String newValue = value.equals("0") ? "false" : "true";
+				Node newChildNode = originalDocument.createElement(newNodeName);
+				newChildNode.setTextContent(newValue);
+				node.removeChild(childNode);
+				node.appendChild(newChildNode);
+			}
 		}
 	}
 

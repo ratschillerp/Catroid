@@ -1,6 +1,6 @@
 /*
  * Catroid: An on-device visual programming system for Android devices
- * Copyright (C) 2010-2021 The Catrobat Team
+ * Copyright (C) 2010-2022 The Catrobat Team
  * (<http://developer.catrobat.org/credits>)
  *
  * This program is free software: you can redistribute it and/or modify
@@ -23,16 +23,27 @@
 
 package org.catrobat.catroid.content.actions
 
+import android.content.Context
 import org.catrobat.catroid.io.SoundManager
 import org.catrobat.catroid.stage.SpeechSynthesizer
+import org.catrobat.catroid.utils.MobileServiceAvailability
+import org.catrobat.catroid.utils.ShowTextUtils.AndroidStringProvider
 
 class SpeakAction : AsynchronousAction() {
     private var isFinished = false
-    var speechSynthesizer: SpeechSynthesizer? = null
+    lateinit var mobileServiceAvailability: MobileServiceAvailability
+    lateinit var context: Context
+    lateinit var speechSynthesizer: SpeechSynthesizer
 
     override fun initialize() {
-        speechSynthesizer?.setUtteranceProgressListener(this::onError, this::onDone)
-        speechSynthesizer?.synthesize()
+        if (mobileServiceAvailability.isGmsAvailable(context)) {
+            speechSynthesizer.setUtteranceProgressListener(this::onError, this::onDone)
+        } else if (mobileServiceAvailability.isHmsAvailable(context)) {
+            speechSynthesizer.setHuaweiTextToSpeechListener(this::onError, this::onDone)
+        } else {
+            return
+        }
+        speechSynthesizer.synthesize(AndroidStringProvider(context))
     }
 
     private fun onError() {
@@ -41,7 +52,7 @@ class SpeakAction : AsynchronousAction() {
 
     private fun onDone() {
         SoundManager.getInstance().playSoundFile(
-            speechSynthesizer?.speechFile?.absolutePath, speechSynthesizer?.scope?.sprite
+            speechSynthesizer.speechFile?.absolutePath, speechSynthesizer.scope?.sprite
         )
         isFinished = true
     }

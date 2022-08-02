@@ -1,6 +1,6 @@
 /*
  * Catroid: An on-device visual programming system for Android devices
- * Copyright (C) 2010-2018 The Catrobat Team
+ * Copyright (C) 2010-2022 The Catrobat Team
  * (<http://developer.catrobat.org/credits>)
  *
  * This program is free software: you can redistribute it and/or modify
@@ -96,11 +96,5 @@ public class GlideToBrick extends VisualPlacementBrick {
 	@Override
 	public int getYEditTextId() {
 		return R.id.brick_glide_to_edit_text_y;
-	}
-
-	@Override
-	public void addRequiredResources(final ResourcesSet requiredResourcesSet) {
-		requiredResourcesSet.add(PHYSICS);
-		super.addRequiredResources(requiredResourcesSet);
 	}
 }
